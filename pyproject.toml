@@ -2,7 +2,7 @@
 requires = ["wheel", "setuptools"]
 
 [tool.pysen]
-version = "0.10"
+version = "0.10.2"
 
 [tool.pysen.lint]
 enable_black = true
@@ -11,7 +11,7 @@ enable_isort = true
 enable_mypy = false
 mypy_preset = "entry"
 line_length = 88
-py_version = "py37"
+py_version = "py38"
 
 [[tool.pysen.lint.mypy_targets]]
 paths = [".", "tests/"]
