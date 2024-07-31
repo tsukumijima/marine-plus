@@ -1,3 +1,4 @@
+import importlib.resources
 import re
 import warnings
 from pathlib import Path
@@ -21,10 +22,9 @@ from marine.utils.util import (
     sequence_mask,
 )
 from omegaconf import OmegaConf
-from pkg_resources import resource_filename
 from torch.nn.utils.rnn import pad_sequence
 
-BASE_DIR = Path(resource_filename("marine", ""))
+BASE_DIR = Path(importlib.resources.files("marine"))
 DEFAULT_POSTPROCESS_VOCAB_DIR = BASE_DIR / "dict"
 
 
@@ -79,7 +79,9 @@ class Predictor:
         )
 
     def _load_states(self):
-        states = torch.load(self.model_dir / "model.pth", map_location=self.device, weights_only=False)
+        states = torch.load(
+            self.model_dir / "model.pth", map_location=self.device, weights_only=False
+        )
         self.model.load_state_dict(states["state_dict"])
         self.model.to(self.device)
         self.model.eval()

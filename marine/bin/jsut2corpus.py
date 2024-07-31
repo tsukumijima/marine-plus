@@ -290,7 +290,9 @@ def entry(argv=sys.argv):
         args.out_dir.mkdir(parents=True)
 
     today = datetime.date.today().strftime("%y%m%d")
-    with open(args.out_dir / f"just_corpus_{today}.json", "w", encoding="utf-8") as file:
+    with open(
+        args.out_dir / f"just_corpus_{today}.json", "w", encoding="utf-8"
+    ) as file:
         json.dump(scripts, file, ensure_ascii=False, indent=4, separators=(",", ": "))
 
 

@@ -1,3 +1,4 @@
+import importlib.resources
 import json
 from logging import getLogger
 from pathlib import Path
@@ -7,10 +8,9 @@ import pytest
 import torch
 from marine.utils.metrics import MultiTaskMetrics, SentenceLevelAccuracy
 from numpy.testing import assert_almost_equal
-from pkg_resources import resource_filename
 
 logger = getLogger("test")
-BASE_DIR = Path(resource_filename("marine", ""))
+BASE_DIR = Path(importlib.resources.files("marine"))
 
 
 @pytest.fixture

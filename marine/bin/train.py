@@ -56,12 +56,16 @@ def save_checkpoint(
         states = {
             "state_dict": model.state_dict(),
             "epoch": epoch,
-            "optimizer": optimizer.state_dict()
-            if config.train.save_optimizer_state and optimizer is not None
-            else None,
-            "scheduler": scheduler.state_dict()
-            if config.train.save_optimizer_state and scheduler is not None
-            else None,
+            "optimizer": (
+                optimizer.state_dict()
+                if config.train.save_optimizer_state and optimizer is not None
+                else None
+            ),
+            "scheduler": (
+                scheduler.state_dict()
+                if config.train.save_optimizer_state and scheduler is not None
+                else None
+            ),
         }
 
         if is_interval:

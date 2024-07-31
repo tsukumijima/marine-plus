@@ -644,9 +644,11 @@ def log_scores(
         # logging to shell
         score_log = f"{phase} / {task} |" + " |".join(
             [
-                f" {score_name} : {score:.4f}"
-                if score_name == "loss"
-                else f" {score_name} : {score:.4%}"
+                (
+                    f" {score_name} : {score:.4f}"
+                    if score_name == "loss"
+                    else f" {score_name} : {score:.4%}"
+                )
                 for score_name, score in scores[task].items()
             ]
         )

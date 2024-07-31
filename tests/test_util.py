@@ -1,3 +1,4 @@
+import importlib.resources
 import json
 from pathlib import Path
 from typing import Dict
@@ -29,9 +30,8 @@ from marine.utils.util import (
 )
 from numpy.testing import assert_almost_equal
 from omegaconf import DictConfig
-from pkg_resources import resource_filename
 
-BASE_DIR = Path(resource_filename("marine", ""))
+BASE_DIR = Path(importlib.resources.files("marine"))
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ def default_config() -> DictConfig:
     config_path = BASE_DIR / "bin" / "conf" / "train" / "config.yaml"
 
     # initialize config
-    with initialize_config_dir(config_dir=str(config_path.parent), version_base='1.1'):
+    with initialize_config_dir(config_dir=str(config_path.parent), version_base="1.1"):
         config = compose(config_name=config_path.name)
     GlobalHydra.instance().clear()
 
