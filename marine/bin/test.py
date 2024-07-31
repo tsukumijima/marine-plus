@@ -286,7 +286,7 @@ def entry(argv=sys.argv):
     )
 
     # save log
-    with open(log_path, "w") as file:
+    with open(log_path, "w", encoding="utf-8") as file:
         json.dump(logs, file, ensure_ascii=False, indent=4, separators=(",", ": "))
 
 

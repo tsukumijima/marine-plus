@@ -92,7 +92,7 @@ def load_postprocess_vocab(vocab_dir, tasks):
         assert target in tasks
 
         for dict_path in dict_dir.glob("*.tsv"):
-            with dict_path.open() as dict_file:
+            with dict_path.open("r", encoding="utf-8") as dict_file:
                 table = reader(dict_file, delimiter="\t")
 
                 for pattern, value in table:

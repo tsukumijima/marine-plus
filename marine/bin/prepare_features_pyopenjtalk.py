@@ -97,7 +97,7 @@ def entry(argv=sys.argv):
 
     output_path = args.out_dir / f"{args.in_path.parent.name}.json"
 
-    with open(output_path, "w") as file:
+    with open(output_path, "w", encoding="utf-8") as file:
         json.dump(corpus, file, ensure_ascii=False, indent=4, separators=(",", ": "))
 
 

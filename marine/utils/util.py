@@ -71,7 +71,7 @@ def load_json_corpus(file_path, suffix="json"):
         file_paths = [file_path]
 
     for path in file_paths:
-        with open(path, "r") as file:
+        with open(path, "r", encoding="utf-8") as file:
             corpus += json.load(file)
 
     return corpus

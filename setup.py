@@ -15,7 +15,7 @@ def find_version(*file_paths: str) -> str:
 
 
 if exists("README.md"):
-    with open("README.md", "r") as fh:
+    with open("README.md", "r", encoding="utf-8") as fh:
         LONG_DESC = LONG_DESC = fh.read()
 else:
     LONG_DESC = ""
@@ -50,11 +50,11 @@ setup(
             "pytest-cov",
             "docstr-coverage",
             "pysen",
-            "black>=19.19b0,<=20.8",
-            "flake8>=3.7,<4",
+            "black>=19.19b0",
+            "flake8>=3.7",
             "flake8-bugbear",
-            "isort>=4.3,<5.2.0",
-            "click<8.1.0",
+            "isort>=4.3",
+            "click",
         ],
         "docs": [
             "sphinx",
@@ -85,6 +85,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Scientific/Engineering",
         "Topic :: Software Development",

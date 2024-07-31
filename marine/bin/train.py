@@ -377,7 +377,7 @@ def my_app(config: DictConfig) -> None:
 
     if config.train.save_test_log:
         # save test result log
-        with open(log_path, "w") as file:
+        with open(log_path, "w", encoding="utf-8") as file:
             json.dump(
                 logs,
                 file,

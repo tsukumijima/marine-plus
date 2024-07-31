@@ -247,10 +247,10 @@ def load_jsut_corpus(
     texts = {}
     annotations = {}
 
-    with open(text_yaml_path, "r") as file:
+    with open(text_yaml_path, "r", encoding="utf-8") as file:
         texts = yaml.safe_load(file)
 
-    with open(annotation_yaml_path, "r") as file:
+    with open(annotation_yaml_path, "r", encoding="utf-8") as file:
         annotations = yaml.safe_load(file)
 
     assert texts.keys() == annotations.keys(), "Not matched text and annotations"
@@ -290,7 +290,7 @@ def entry(argv=sys.argv):
         args.out_dir.mkdir(parents=True)
 
     today = datetime.date.today().strftime("%y%m%d")
-    with open(args.out_dir / f"just_corpus_{today}.json", "w") as file:
+    with open(args.out_dir / f"just_corpus_{today}.json", "w", encoding="utf-8") as file:
         json.dump(scripts, file, ensure_ascii=False, indent=4, separators=(",", ": "))
 
 

@@ -62,7 +62,7 @@ def default_vocab_path() -> Path:
 def test_log_sample() -> Dict:
     logs = None
     sample_path = BASE_DIR.parent / "tests" / "samples" / "test_log_sample.json"
-    with open(sample_path, "r") as file:
+    with open(sample_path, "r", encoding="utf-8") as file:
         logs = json.load(file)
     return logs
 
