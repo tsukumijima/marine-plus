@@ -32,6 +32,7 @@ setup(
     long_description_content_type="text/markdown",
     include_package_data=True,
     install_requires=[
+        "importlib_resources; python_version<'3.9'",
         "numpy >= 1.21.0, <2",
         "torch >= 1.7.0",
         "hydra-core >= 1.1.0",

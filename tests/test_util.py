@@ -1,5 +1,5 @@
-import importlib.resources
 import json
+import sys
 from pathlib import Path
 from typing import Dict
 
@@ -31,7 +31,12 @@ from marine.utils.util import (
 from numpy.testing import assert_almost_equal
 from omegaconf import DictConfig
 
-BASE_DIR = Path(importlib.resources.files("marine"))
+if sys.version_info >= (3, 9):
+    import importlib.resources as importlib_resources
+else:
+    import importlib_resources
+
+BASE_DIR = Path(importlib_resources.files("marine"))
 
 
 @pytest.fixture

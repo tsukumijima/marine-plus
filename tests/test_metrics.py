@@ -1,5 +1,5 @@
-import importlib.resources
 import json
+import sys
 from logging import getLogger
 from pathlib import Path
 from typing import Dict
@@ -9,8 +9,13 @@ import torch
 from marine.utils.metrics import MultiTaskMetrics, SentenceLevelAccuracy
 from numpy.testing import assert_almost_equal
 
+if sys.version_info >= (3, 9):
+    import importlib.resources as importlib_resources
+else:
+    import importlib_resources
+
 logger = getLogger("test")
-BASE_DIR = Path(importlib.resources.files("marine"))
+BASE_DIR = Path(importlib_resources.files("marine"))
 
 
 @pytest.fixture

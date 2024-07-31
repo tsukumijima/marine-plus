@@ -1,5 +1,5 @@
-import importlib.resources
 import re
+import sys
 import warnings
 from pathlib import Path
 
@@ -24,7 +24,12 @@ from marine.utils.util import (
 from omegaconf import OmegaConf
 from torch.nn.utils.rnn import pad_sequence
 
-BASE_DIR = Path(importlib.resources.files("marine"))
+if sys.version_info >= (3, 9):
+    import importlib.resources as importlib_resources
+else:
+    import importlib_resources
+
+BASE_DIR = Path(importlib_resources.files("marine"))
 DEFAULT_POSTPROCESS_VOCAB_DIR = BASE_DIR / "dict"
 
 
