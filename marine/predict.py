@@ -79,7 +79,7 @@ class Predictor:
         )
 
     def _load_states(self):
-        states = torch.load(self.model_dir / "model.pth", map_location=self.device)
+        states = torch.load(self.model_dir / "model.pth", map_location=self.device, weights_only=False)
         self.model.load_state_dict(states["state_dict"])
         self.model.to(self.device)
         self.model.eval()

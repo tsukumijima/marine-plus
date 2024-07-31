@@ -55,18 +55,23 @@ class MultiTaskMetrics(object):
             task_name: MetricCollection(
                 {
                     "mora_level_f1_score": F1Score(
+                        task="multiclass",
                         num_classes=2,  # the AN label represents High/Low or non-AN/AN
                         average=average,
                     ).to(device),
                     "ap_level_f1_score": F1Score(
-                        num_classes=task_label_size, average=average
+                        task="multiclass",
+                        num_classes=task_label_size,
+                        average=average,
                     ).to(device),
                     "sentence_level_accuracy": SentenceLevelAccuracy().to(device),
                 }
                 if task_name == "accent_status" and require_ap_level_f1_score
                 else {
                     "mora_level_f1_score": F1Score(
-                        num_classes=task_label_size, average=average
+                        task="multiclass",
+                        num_classes=task_label_size,
+                        average=average,
                     ).to(device),
                     "sentence_level_accuracy": SentenceLevelAccuracy().to(device),
                 }

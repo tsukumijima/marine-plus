@@ -39,7 +39,7 @@ def default_config() -> DictConfig:
     config_path = BASE_DIR / "bin" / "conf" / "train" / "config.yaml"
 
     # initialize config
-    with initialize_config_dir(config_dir=str(config_path.parent)):
+    with initialize_config_dir(config_dir=str(config_path.parent), version_base='1.1'):
         config = compose(config_name=config_path.name)
     GlobalHydra.instance().clear()
 

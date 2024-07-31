@@ -94,7 +94,7 @@ def test_model(
     device="cpu",
 ):
     model_path = checkpoint_dir / checkpoint_file
-    states = torch.load(model_path)
+    states = torch.load(model_path, weights_only=False)
 
     phase = "test"
     fig_logging_targets = random.choices(range(config.data.batch_size), k=10)
