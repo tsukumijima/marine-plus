@@ -173,7 +173,8 @@ def convert_open_jtalk_format_label(
                 "Lenght of AP-based accent status will be adjusted "
                 "by morph-based accent phrase boundary: "
                 f"{len(phrase_accent_status_labels)} > {num_boundary}"
-            )
+            ),
+            stacklevel=2,
         )
         phrase_accent_status_labels = phrase_accent_status_labels[:num_boundary]
 

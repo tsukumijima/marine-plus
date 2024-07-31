@@ -38,7 +38,7 @@ def extract_feature(script_id, text):
 
     try:
         from pyopenjtalk import run_frontend
-    except BaseException:
+    except BaseException:  # noqa
         raise ImportError(
             'Please install pyopenjtalk by `pip install -e ".[dev,pyopenjtalk]"`'
         )

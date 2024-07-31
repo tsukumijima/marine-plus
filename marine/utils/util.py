@@ -87,7 +87,7 @@ def split_corpus(
 ):
     try:
         from sklearn.model_selection import train_test_split
-    except BaseException:
+    except BaseException:  # noqa
         raise ImportError('Please install sklearn by `pip install -e ".[dev]"`')
 
     """Split corpus into train, valid, test."""
@@ -476,7 +476,7 @@ def plot_attention(attention, xs=None, ys=None):
     try:
         import matplotlib.pyplot as plt
         import matplotlib.ticker as ticker
-    except BaseException:
+    except BaseException:  # noqa
         raise ImportError('Please install matplotlib by `pip install -e ".[dev]"`')
 
     fig, ax = plt.subplots()

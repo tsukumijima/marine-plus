@@ -130,7 +130,8 @@ class Predictor:
                 (
                     "If you want the format for OpenJTalk,",
                     "`accent_represent_mode` will be fixed as `binary`",
-                )
+                ),
+                stacklevel=2,
             )
             accent_represent_mode = "binary"
 
