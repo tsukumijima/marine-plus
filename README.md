@@ -1,3 +1,24 @@
+# marine-plus
+
+[![PyPI](https://img.shields.io/pypi/v/marine-plus.svg)](https://pypi.python.org/pypi/marine-plus)
+[![Python package](https://github.com/tsukumijima/marine-plus/actions/workflows/ci.yml/badge.svg)](https://github.com/tsukumijima/marine-plus/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
+marine-plus は、主に Windows 対応や新しい Python バージョンのサポートなどコードのメンテナンスを目的とした、[marine](https://github.com/6gsn/marine) の派生ライブラリです。
+
+## Installation
+
+下記コマンドを実行して、ライブラリをインストールできます。
+
+```bash
+pip install marine-plus
+```
+
+下記のドキュメントは、[marine](https://github.com/6gsn/marine) 本家のドキュメントを改変なしでそのまま引き継いでいます。  
+これらのドキュメントの内容が marine-plus にも通用するかは保証されません。
+
+-------
+
 # **MARINE** : **M**ulti-task lea**R**n**I**ng-based Japa**N**ese accent **E**stimation
 
 [![PyPI](https://img.shields.io/pypi/v/marine.svg)](https://pypi.python.org/pypi/marine)

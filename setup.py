@@ -22,9 +22,9 @@ else:
 
 
 setup(
-    name="marine",
+    name="marine-plus",
     version=find_version("marine", "__init__.py"),
-    description="Marine: Multi-task learning based on Japanese accent estimation",
+    description="Marine: Multi-task learning based on Japanese accent estimation (Also supports Windows and Python 3.12)",
     packages=find_packages(),
     author="Byeongseon Park",
     author_email="6gsn.park@gmail.com",

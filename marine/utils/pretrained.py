@@ -13,8 +13,8 @@ from tqdm.auto import tqdm
 DEFAULT_CACHE_DIR = join(os.path.expanduser("~"), ".cache", "marine")
 CACHE_DIR = os.environ.get("MARINE_CACHE_DIR", DEFAULT_CACHE_DIR)
 
-DEFAULT_VERSION = "v0.0.2"
-MODEL_BASE_URL = "https://github.com/6gsn/marine/releases/download/"
+DEFAULT_VERSION = "v0.0.6-post1"
+MODEL_BASE_URL = "https://github.com/tsukumijima/marine-plus/releases/download/"
 
 
 # https://github.com/tqdm/tqdm#hooks-and-callbacks
@@ -36,7 +36,7 @@ def retrieve_pretrained_model(version=None):
     Examples:
         >>> from marine.utils.pretrained import retrieve_pretrained_model
         >>> from marine.predict import Predictor
-        >>> model_dir = retrieve_pretrained_model("v0.0.2")
+        >>> model_dir = retrieve_pretrained_model("v0.0.6-post1")
         >>> predictor = Tacotron2PWGTTS(model_dir=model_dir, device="cpu")
     """
 
