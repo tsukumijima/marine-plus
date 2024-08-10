@@ -56,10 +56,6 @@ def retrieve_pretrained_model(version=None):
         shutil.rmtree(out_dir)
 
     if not out_dir.exists():
-        print(
-            "The use of pre-trained models is permitted for non-commercial use only."
-            "Please visit https://github.com/6gsn/marine to confirm the license."
-        )
         print('Downloading: "{}"'.format(url))
 
         out_dir.mkdir(parents=True, exist_ok=True)
