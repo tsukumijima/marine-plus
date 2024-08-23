@@ -1,6 +1,7 @@
 import json
 import random
 import time
+import sys
 from pathlib import Path
 from shutil import copyfile
 
@@ -163,7 +164,11 @@ def train_model(
 
                         if isinstance(model.decoders[task], CRFDecoder):
                             linear_logits, crf_logits = decoder_outputs
-                            loss = criterions[task](linear_logits, output, output_mask)
+                            try:
+                                loss = criterions[task](linear_logits, output, output_mask)
+                            except:
+                                print(script_ids)
+                                sys.exit(1)
                             logits = crf_logits
                         elif isinstance(model.decoders[task], LinearDecoder):
                             logits = decoder_outputs
@@ -223,7 +228,11 @@ def train_model(
 
                         # for mora-based seq
                         else:
-                            metrics.update(task, predicts, output, output_mask)
+                            try:
+                                metrics.update(task, predicts, output, output_mask)
+                            except:
+                                print(script_ids)
+                                sys.exit(-1)
 
                         # cascade prev outputs
                         if index < len(tasks) - 1:

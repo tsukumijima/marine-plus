@@ -223,7 +223,7 @@ MORAS = [
     # Longvowel symbol
     "ー",
 ]
-PUNCTUATIONS = [",", ".", "?", "!"]
+PUNCTUATIONS = [",", ".", "?", "!", "。", "、", "？", "！"]
 MORAS += PUNCTUATIONS
 
 # POS list defined in Unidic-CSJ
@@ -735,9 +735,7 @@ def parse_accent_con_type(a_con_type, pos, unk_token="[UNK]"):
     if a_con_type is None:
         a_con_type = unk_token
     elif "%" in a_con_type:
-        a_con_type = {
-            con[1]: con[2] for con in _re_accent_con_f_type.findall(a_con_type)
-        }
+        a_con_type = {con[1]: con[2] for con in _re_accent_con_f_type.findall(a_con_type)}
         pos_tag = _pos_id_to_tag(pos, unk_token)
         a_con_type = a_con_type.get(pos_tag, unk_token)
 

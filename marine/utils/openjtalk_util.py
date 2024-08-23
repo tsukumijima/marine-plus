@@ -1,7 +1,18 @@
 import warnings
+import difflib
+
 
 import numpy as np
+import pykakasi
+import re
+import jaconv
+
 from marine.data.feature.feature_table import RAW_FEATURE_KEYS
+
+
+kakasi = pykakasi.kakasi()
+BOIN_DICT = {"a": "ア", "i": "イ", "u": "ウ", "e": "エ", "o": "オ", "n": "ン"}
+
 
 OPEN_JTALK_FEATURE_INDEX_TABLE = {
     "surface": 0,
@@ -15,9 +26,11 @@ OPEN_JTALK_FEATURE_INDEX_TABLE = {
 }
 OPEN_JTALK_FEATURE_RENAME_TABLE = {
     "surface": "string",
+    "pos": ["pos", "pos_group1", "pos_group2", "pos_group3"],
     "c_type": "ctype",
     "c_form": "cform",
     "accent_type": "acc",
+    "pron": "pron",
     "accent_con_type": "chain_rule",
     "chain_flag": "chain_flag",
 }
@@ -34,27 +47,42 @@ PUNCTUATION_FULL_TO_HALF_TRANS = str.maketrans(PUNCTUATION_FULL_TO_HALF_TABLE)
 def convert_open_jtalk_node_to_feature(nodes):
     features = []
     raw_feature_keys = RAW_FEATURE_KEYS["open-jtalk"]
+    pre_pron = None
 
     for node in nodes:
         # parse feature
-        _node = node.split(",")
         node_feature = {}
-
         for feature_key in raw_feature_keys:
-            index = OPEN_JTALK_FEATURE_INDEX_TABLE[feature_key]
+            jtalk_key = OPEN_JTALK_FEATURE_RENAME_TABLE[feature_key]
 
             if feature_key == "pos":
-                value = ":".join([_node[i] for i in index])
+                value = ":".join([node[_k] for _k in jtalk_key])
             elif feature_key == "accent_type":
-                value = int(_node[index].split("/")[0])
+                value = int(node[jtalk_key])
             elif feature_key == "accent_con_type":
-                value = _node[index].replace("/", ",")
+                value = node[jtalk_key].replace("/", ",")
             elif feature_key == "chain_flag":
-                value = int(_node[index])
+                value = int(node[jtalk_key])
             elif feature_key == "pron":
-                value = _node[index].replace("’", "").replace("ヲ", "オ")
+                if node[jtalk_key][0] == "ー":
+                    try:
+                        value = trans_hyphen2katakana(pre_pron + node[jtalk_key])[
+                            -len(node[jtalk_key]) :
+                        ]
+                    except:
+                        print(node[jtalk_key])
+                        value = node[jtalk_key]
+                    pre_pron = value
+                else:
+                    value = node[jtalk_key].replace("’", "").replace("ヲ", "オ")
+                    try:
+                        value = trans_hyphen2katakana(value)
+                    except:
+                        print(value)
+
+                    pre_pron = value
             else:
-                value = _node[index]
+                value = node[jtalk_key]
 
             node_feature[feature_key] = value
 
@@ -98,9 +126,7 @@ def convert_njd_feature_to_marine_feature(njd_features):
         if marine_feature["surface"] == "・":
             continue
         elif marine_feature["surface"] in PUNCTUATION_FULL_TO_HALF_TABLE.keys():
-            surface = marine_feature["surface"].translate(
-                PUNCTUATION_FULL_TO_HALF_TRANS
-            )
+            surface = marine_feature["surface"].translate(PUNCTUATION_FULL_TO_HALF_TRANS)
             pron = None
             marine_feature["surface"] = surface
             marine_feature["pron"] = pron
@@ -136,9 +162,7 @@ def convert_open_jtalk_format_label(
 
     # convert mora-based accent phrase boundary label to morph-based label
     morph_boundary_indexes = np.where(morph_boundary == morph_boundary_label)[0]
-    morph_accent_phrase_boundary = np.split(
-        mora_accent_phrase_boundary, morph_boundary_indexes
-    )
+    morph_accent_phrase_boundary = np.split(mora_accent_phrase_boundary, morph_boundary_indexes)
     # `chain_flag` in OpenJTalk represents the status whether the morph will be connected
     morph_accent_phrase_boundary = [
         0 if boundary[0] == accent_phrase_boundary_label else 1
@@ -149,18 +173,16 @@ def convert_open_jtalk_format_label(
     num_boundary = morph_accent_phrase_boundary.count(0) + 1
 
     # convert mora-based accent status label to ap-based label
+    # アクセント句境界かつ形態素句境界のindexを取得に修正
     mora_accent_phrase_boundary_indexes = np.where(
-        mora_accent_phrase_boundary == accent_phrase_boundary_label
+        mora_accent_phrase_boundary + morph_boundary
+        == accent_phrase_boundary_label + morph_boundary_label
     )[0]
-    phrase_accent_statuses = np.split(
-        mora_accent_status, mora_accent_phrase_boundary_indexes
-    )
+    phrase_accent_statuses = np.split(mora_accent_status, mora_accent_phrase_boundary_indexes)
     phrase_accent_status_labels = []
 
     for phrase_accent_status in phrase_accent_statuses:
-        accent_nucleus_indexes = np.where(phrase_accent_status == accent_nucleus_label)[
-            0
-        ]
+        accent_nucleus_indexes = np.where(phrase_accent_status == accent_nucleus_label)[0]
         if len(accent_nucleus_indexes) == 0:
             accent_nucleus_index = 0
         else:
@@ -188,3 +210,56 @@ def convert_open_jtalk_format_label(
         "accent_status": morph_accent_status,
         "accent_phrase_boundary": morph_accent_phrase_boundary,
     }
+
+
+def trans_hyphen2katakana(text):
+    """
+    伸ばし棒をカタカナに変換
+    例：きょー→きょお
+    """
+    hyphen_string_list = re.findall("..ー", text)
+    text = replace_hyphen(text, hyphen_string_list)
+
+    hyphen_string_list = re.findall(".ー", text)
+    text = replace_hyphen(text, hyphen_string_list)
+
+    return text
+
+
+def replace_hyphen(text, hyphen_string_list):
+    for _str in hyphen_string_list:
+        if "[" in _str or "]" in _str:
+            result = kakasi.convert(_str.replace("[", "").replace("]", ""))[0]
+        else:
+            _str_wo_hyphen = _str.replace("ー", "")
+            result = kakasi.convert(_str_wo_hyphen)[-1]
+
+        transed_hyphen_string = _str[:-1] + BOIN_DICT[result["hepburn"][-1]]
+        text = text.replace(_str, transed_hyphen_string)
+
+    return text
+
+
+def print_diff_hl(ground_truth, target):
+    """
+    文字列の差異をハイライト表示する
+    """
+    color_dic = {"red": "\033[31m", "green": "\033[32m", "end": "\033[0m"}
+
+    d = difflib.Differ()
+    diffs = d.compare(ground_truth, target)
+
+    result = ""
+    for diff in diffs:
+        status, _, character = list(diff)
+        if status == "-":
+            character = color_dic["red"] + character + color_dic["end"]
+        elif status == "+":
+            character = color_dic["green"] + character + color_dic["end"]
+        else:
+            pass
+        result += character
+
+    print(f"ground truth : {ground_truth}")
+    print(f"target string: {target}")
+    print(f"diff result  : {result}")

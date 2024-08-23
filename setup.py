@@ -38,6 +38,7 @@ setup(
         "hydra_colorlog >= 1.1.0",
         "tqdm",
         "joblib",
+        "pykakasi == 2.3.0"
     ],
     extras_require={
         "dev": [
