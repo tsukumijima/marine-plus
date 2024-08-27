@@ -106,9 +106,7 @@ class Predictor:
         if skip_post_process:
             self.postprocess_vocab, self.epostprocess_targets = None, None
         else:
-            self.postprocess_vocab = load_postprocess_vocab(
-                self.postprocess_vocab_dir, self.tasks
-            )
+            self.postprocess_vocab = load_postprocess_vocab(self.postprocess_vocab_dir, self.tasks)
             self.postprocess_targets = {
                 key: re.compile(f"({'|'.join(vocab.keys())})") if vocab else None
                 for key, vocab in self.postprocess_vocab.items()
@@ -174,9 +172,7 @@ class Predictor:
 
                 elif isinstance(self.model.decoders[task], AttentionBasedLSTMDecoder):
                     logits, _, ap_lengths = outputs
-                    ap_outputs = inputs["prev_decoder_outputs"][
-                        "accent_phrase_boundary"
-                    ]
+                    ap_outputs = inputs["prev_decoder_outputs"]["accent_phrase_boundary"]
 
                 real_labels = self.convert_to_label(
                     task,
@@ -230,9 +226,7 @@ class Predictor:
         ]
         inputs, _, morph_boundary, _ = self.collate_fn(batch)
 
-        embeddings = {
-            key: inputs[key].to(self.device) for key in self.config.data.input_keys
-        }
+        embeddings = {key: inputs[key].to(self.device) for key in self.config.data.input_keys}
 
         inputs = {
             "embedding_features": embeddings,
@@ -286,9 +280,9 @@ class Predictor:
                     # convert the label to follow the inference setting
                     elif self.config.data.represent_mode != accent_represent_mode:
                         predict = padded_predict[mora_mask]
-                        accent_phrase_boundary = prev_task_outputs[
-                            "accent_phrase_boundary"
-                        ][index][mora_mask]
+                        accent_phrase_boundary = prev_task_outputs["accent_phrase_boundary"][index][
+                            mora_mask
+                        ]
                         predict = torch.argmax(predict, dim=1)
                         predict = convert_label_by_accent_representation_model(
                             predict,
@@ -318,9 +312,7 @@ class Predictor:
             annotate = annotates[key]["labels"]
 
             if token_type == "morph":
-                annotate = expand_word_label_to_mora(
-                    annotate, mora, morph_boundary, key
-                )
+                annotate = expand_word_label_to_mora(annotate, mora, morph_boundary, key)
             elif token_type != "mora":
                 raise ValueError(f"Token type must be morph or mora: {token_type}")
 

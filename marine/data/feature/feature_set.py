@@ -1,8 +1,11 @@
 from logging import getLogger
 from pathlib import Path
+import re
 
+import pykakasi
 import joblib
 import numpy as np
+
 from marine.data.feature.feature_table import (
     FEATURE_TABLES,
     PUNCTUATIONS,
@@ -68,17 +71,13 @@ class FeatureSet(object):
                 feature_set = self.default_tokens + self._load_vocab()
             else:
                 if key not in self.feature_table.keys():
-                    raise ValueError(
-                        f"Feature key must be one of {self.feature_table.keys()}"
-                    )
+                    raise ValueError(f"Feature key must be one of {self.feature_table.keys()}")
                 feature_set = self.default_tokens + self.feature_table[key]
 
             feature_to_id = {
                 feature_value: index for index, feature_value in enumerate(feature_set)
             }
-            id_to_feature = {
-                index: feature_value for feature_value, index in feature_to_id.items()
-            }
+            id_to_feature = {index: feature_value for feature_value, index in feature_to_id.items()}
             self.feature_to_id[key] = feature_to_id
             self.id_to_feature[key] = id_to_feature
 
@@ -105,13 +104,28 @@ class FeatureSet(object):
             )
 
         return np.array(
-            [
-                self.id_to_feature[feature_key].get(value, self.unk_token)
-                for value in ids
-            ]
+            [self.id_to_feature[feature_key].get(value, self.unk_token) for value in ids]
         )
 
     def convert_nodes_to_feature(self, nodes):
+        """
+         Input dict型のリスト
+
+         exsample
+
+        [
+         {   "surface": "今回",
+             "pron": "コンカイ",
+             "pos": "名詞:副詞可能:*:*",
+             "c_type": "*",
+             "c_form": "*",
+             "accent_type": 1,
+             "accent_con_type": "C1",
+             "chain_flag": -1
+         },...
+
+        """
+
         features = {key: np.array([], np.uint8) for key in self.feature_to_id}
 
         # init morph boundary for inference
@@ -121,6 +135,7 @@ class FeatureSet(object):
             mora = self.convert_feature_to_id(
                 "mora", pron2mora(node["pron"]) if node["pron"] else [node["surface"]]
             )
+
             morph_boundary = np.array([1] + ([0] * (len(mora) - 1)), dtype=np.uint8)
 
             # Push features
