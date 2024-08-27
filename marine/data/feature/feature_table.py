@@ -223,7 +223,10 @@ MORAS = [
     # Longvowel symbol
     "ー",
 ]
-PUNCTUATIONS = [",", ".", "?", "!", "。", "、", "？", "！"]
+# PUNCTUATIONS = [",", ".", "?", "!", "。", "、", "？", "！"]
+# オリジナルの事前学習モデルで推論するには PUNCTUATIONS を減らす必要がある
+# さもなければ vocal size の不一致で RuntimeError が発生する
+PUNCTUATIONS = [",", ".", "?", "!"]
 MORAS += PUNCTUATIONS
 
 # POS list defined in Unidic-CSJ
