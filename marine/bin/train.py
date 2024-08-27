@@ -1,7 +1,7 @@
 import json
 import random
-import time
 import sys
+import time
 from pathlib import Path
 from shutil import copyfile
 
@@ -169,8 +169,10 @@ def train_model(
                         if isinstance(model.decoders[task], CRFDecoder):
                             linear_logits, crf_logits = decoder_outputs
                             try:
-                                loss = criterions[task](linear_logits, output, output_mask)
-                            except:
+                                loss = criterions[task](
+                                    linear_logits, output, output_mask
+                                )
+                            except Exception:
                                 print(script_ids)
                                 sys.exit(1)
                             logits = crf_logits
@@ -234,7 +236,7 @@ def train_model(
                         else:
                             try:
                                 metrics.update(task, predicts, output, output_mask)
-                            except:
+                            except Exception:
                                 print(script_ids)
                                 sys.exit(-1)
 

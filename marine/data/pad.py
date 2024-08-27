@@ -23,7 +23,9 @@ class Padsequence(object):
         padded_feature = {}
 
         for key in self.input_keys:
-            feature = [torch.tensor(features[key], dtype=torch.int64) for features in inputs]
+            feature = [
+                torch.tensor(features[key], dtype=torch.int64) for features in inputs
+            ]
 
             if key in self.input_length_key:
                 padded_feature[f"{key}_length"] = torch.tensor(

@@ -1,10 +1,9 @@
+import os
 import re
 from pathlib import Path
-import os
 
 import jaconv
 import pyopenjtalk
-
 
 EDIT_DICT_CSV = str(Path(__file__).parent.joinpath("edit_dict.csv"))
 USER_DICT_CSV = str(Path(__file__).parent.joinpath("user_dict.csv"))
@@ -33,7 +32,9 @@ def dictupdate_byrecord(record, dict_records=None):
     # 記載ミスがあれば処理しない
     if not (p.fullmatch(yomi_acc) and C1C2 in ("C1", "C2")):
         print(
-            '{0}は"読み"又は"C1C2"の書き方に誤りがあったため登録をスキップしました。'.format(word)
+            '{0}は"読み"又は"C1C2"の書き方に誤りがあったため登録をスキップしました。'.format(
+                word
+            )
         )
         return dict_records
 

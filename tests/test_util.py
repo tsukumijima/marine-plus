@@ -517,7 +517,7 @@ def test_convert_open_jtalk_format_label():
             },
             [np.array([0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1], dtype=np.uint8)],
             {
-                "accent_status": [5, 0, 0, 0, 0, 0, 0],
+                "accent_status": [5, 0, 0, 0, 3, 0, 0],
                 "accent_phrase_boundary": [-1, 1, 1, 1, 0, 1, 1],
             },
         ),

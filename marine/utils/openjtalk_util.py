@@ -1,14 +1,10 @@
-import warnings
 import difflib
-
+import re
+import warnings
 
 import numpy as np
 import pykakasi
-import re
-import jaconv
-
 from marine.data.feature.feature_table import RAW_FEATURE_KEYS
-
 
 kakasi = pykakasi.kakasi()
 BOIN_DICT = {"a": "ア", "i": "イ", "u": "ウ", "e": "エ", "o": "オ", "n": "ン"}
@@ -69,7 +65,7 @@ def convert_open_jtalk_node_to_feature(nodes):
                         value = trans_hyphen2katakana(pre_pron + node[jtalk_key])[
                             -len(node[jtalk_key]) :
                         ]
-                    except:
+                    except Exception:
                         print(node[jtalk_key])
                         value = node[jtalk_key]
                     pre_pron = value
@@ -77,7 +73,7 @@ def convert_open_jtalk_node_to_feature(nodes):
                     value = node[jtalk_key].replace("’", "").replace("ヲ", "オ")
                     try:
                         value = trans_hyphen2katakana(value)
-                    except:
+                    except Exception:
                         print(value)
 
                     pre_pron = value
@@ -126,7 +122,9 @@ def convert_njd_feature_to_marine_feature(njd_features):
         if marine_feature["surface"] == "・":
             continue
         elif marine_feature["surface"] in PUNCTUATION_FULL_TO_HALF_TABLE.keys():
-            surface = marine_feature["surface"].translate(PUNCTUATION_FULL_TO_HALF_TRANS)
+            surface = marine_feature["surface"].translate(
+                PUNCTUATION_FULL_TO_HALF_TRANS
+            )
             pron = None
             marine_feature["surface"] = surface
             marine_feature["pron"] = pron
@@ -162,7 +160,9 @@ def convert_open_jtalk_format_label(
 
     # convert mora-based accent phrase boundary label to morph-based label
     morph_boundary_indexes = np.where(morph_boundary == morph_boundary_label)[0]
-    morph_accent_phrase_boundary = np.split(mora_accent_phrase_boundary, morph_boundary_indexes)
+    morph_accent_phrase_boundary = np.split(
+        mora_accent_phrase_boundary, morph_boundary_indexes
+    )
     # `chain_flag` in OpenJTalk represents the status whether the morph will be connected
     morph_accent_phrase_boundary = [
         0 if boundary[0] == accent_phrase_boundary_label else 1
@@ -178,11 +178,15 @@ def convert_open_jtalk_format_label(
         mora_accent_phrase_boundary + morph_boundary
         == accent_phrase_boundary_label + morph_boundary_label
     )[0]
-    phrase_accent_statuses = np.split(mora_accent_status, mora_accent_phrase_boundary_indexes)
+    phrase_accent_statuses = np.split(
+        mora_accent_status, mora_accent_phrase_boundary_indexes
+    )
     phrase_accent_status_labels = []
 
     for phrase_accent_status in phrase_accent_statuses:
-        accent_nucleus_indexes = np.where(phrase_accent_status == accent_nucleus_label)[0]
+        accent_nucleus_indexes = np.where(phrase_accent_status == accent_nucleus_label)[
+            0
+        ]
         if len(accent_nucleus_indexes) == 0:
             accent_nucleus_index = 0
         else:

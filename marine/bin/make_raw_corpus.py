@@ -1,13 +1,11 @@
 import argparse
-import datetime
 import json
-import sys
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
 import yaml
-
 from marine.logger import getLogger
 from marine.utils.g2p_util import pron2mora
 from marine.utils.openjtalk_util import trans_hyphen2katakana
@@ -28,21 +26,23 @@ def get_parser():
         description="Convert Special format txt format data to json file",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("in_path",default='./data', type=Path, help="Input path or directory")
-    parser.add_argument("out_dir", default='./raw',type=Path, help="Output directory")
+    parser.add_argument(
+        "in_path", default="./data", type=Path, help="Input path or directory"
+    )
+    parser.add_argument("out_dir", default="./raw", type=Path, help="Output directory")
 
     parser.add_argument(
-            "--text_f_name",
-            type=str,
-            default="text.yaml",
-            help="text yaml file name.",
-            )
+        "--text_f_name",
+        type=str,
+        default="text.yaml",
+        help="text yaml file name.",
+    )
     parser.add_argument(
-            "--annot_f_name",
-            type=str,
-            default="annotation.yaml",
-            help="annotation yaml file name.",
-            )
+        "--annot_f_name",
+        type=str,
+        default="annotation.yaml",
+        help="annotation yaml file name.",
+    )
     parser.add_argument(
         "--accent_status_seq_level",
         "-s",
@@ -222,7 +222,7 @@ def parse_jsut_annotation(
         len(binary_accents),
         len(accent_phrase_boundaries),
         len(intonation_phrase_boundaries),
-        annotation
+        annotation,
     )
 
     accents = convert_mask_seq_to_int_seq(binary_accents)
@@ -258,11 +258,17 @@ def parse_jsut_annotation(
 
 
 def load_yaml_corpus(
-    yaml_corpus_dir, accent_status_seq_level, accent_status_represent_mode,
-    text_file_name,annotation_file_name):
+    yaml_corpus_dir,
+    accent_status_seq_level,
+    accent_status_represent_mode,
+    text_file_name,
+    annotation_file_name,
+):
 
     text_yaml_path = os.path.join(yaml_corpus_dir, "text_kana", text_file_name)
-    annotation_yaml_path = os.path.join(yaml_corpus_dir, "e2e_symbol" ,annotation_file_name)
+    annotation_yaml_path = os.path.join(
+        yaml_corpus_dir, "e2e_symbol", annotation_file_name
+    )
 
     scripts = []
     texts = {}
@@ -304,13 +310,17 @@ def entry(argv=sys.argv):
     logger.debug(f"Loaded parameters: {args}")
 
     scripts = load_yaml_corpus(
-        args.in_path, args.accent_status_seq_level, args.accent_status_represent_mode,args.text_f_name,args.annot_f_name
+        args.in_path,
+        args.accent_status_seq_level,
+        args.accent_status_represent_mode,
+        args.text_f_name,
+        args.annot_f_name,
     )
 
     if not args.out_dir.exists():
         args.out_dir.mkdir(parents=True)
 
-    with open(args.out_dir / f"raw_corpus.json", "w") as file:
+    with open(args.out_dir / "raw_corpus.json", "w") as file:
         json.dump(scripts, file, ensure_ascii=False, indent=4, separators=(",", ": "))
 
 

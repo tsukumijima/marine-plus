@@ -26,7 +26,9 @@ def get_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("corpus_path", type=Path, help="Path or directory for corpus")
-    parser.add_argument("feature_path", type=Path, help="Path or directory for feature file")
+    parser.add_argument(
+        "feature_path", type=Path, help="Path or directory for feature file"
+    )
     parser.add_argument("vocab_path", type=Path, help="Vocab file path")
     parser.add_argument("out_dir", type=Path, help="Output directory")
     parser.add_argument("--n_jobs", type=int, default=8, help="Number of jobs")
@@ -109,7 +111,9 @@ def insert_punctuation_by_extracted_features(
     indexs = np.where(np.in1d(mora_seq_w_puncts, punctuation_ids))[0]
 
     for index in indexs:
-        mora_seq_wo_puncts = np.insert(mora_seq_wo_puncts, index, int(mora_seq_w_puncts[index]))
+        mora_seq_wo_puncts = np.insert(
+            mora_seq_wo_puncts, index, int(mora_seq_w_puncts[index])
+        )
         for label_key in labels.keys():
             if label_key == "accent_status" and accent_status_seq_level == "ap":
                 # the AP-based AN label represents the position of AN in a AP
@@ -148,12 +152,15 @@ def _process(
     punctuation_ids = feature_set.get_punctuation_ids()
 
     # check accent seq level
-    required_ap_accent = "accent" in original_labels.keys() and accent_status_seq_level == "ap"
+    required_ap_accent = (
+        "accent" in original_labels.keys() and accent_status_seq_level == "ap"
+    )
 
     # init labels, features
     labels = {key: [] for key in original_labels.keys()}
     _original_labels = {
-        key: [int(v) for v in value.split(",")] for key, value in original_labels.items()
+        key: [int(v) for v in value.split(",")]
+        for key, value in original_labels.items()
     }
 
     # convert nodes to feature seqs
@@ -168,9 +175,13 @@ def _process(
     # verify the features is available
     # i.e., is the prounnounces is same w/o punctuation
     punct_removed_extracted_mora = feature["mora"][
-        np.in1d(feature["mora"], punctuation_ids, invert=True)  # 発音しない記号は除外している
+        np.in1d(
+            feature["mora"], punctuation_ids, invert=True
+        )  # 発音しない記号は除外している
     ]
-    punct_removed_expected_mora = expected_ids[np.in1d(expected_ids, punctuation_ids, invert=True)]
+    punct_removed_expected_mora = expected_ids[
+        np.in1d(expected_ids, punctuation_ids, invert=True)
+    ]
 
     # sys.exit(0)
 
@@ -208,7 +219,9 @@ def _process(
                     + 1
                 )
                 accents = _original_labels["accent_status"]
-                assert len(accents) == num_boundary, "Unmatched length of sequnce between ac and ap"
+                assert (
+                    len(accents) == num_boundary
+                ), "Unmatched length of sequnce between ac and ap"
                 labels["accent_status"] = np.array(
                     _original_labels["accent_status"], dtype=np.uint8
                 )
@@ -233,7 +246,9 @@ def _process(
             with open("./wrong_mora_info.csv", mode="a") as f:
                 f.write("{}|{}|{}\n".format(script_id, extructed_txt, expected_txt))
 
-            logger.debug((f"Wrong mora [{script_id}]:" f"{expected_txt}" f" != {extructed_txt}"))
+            logger.debug(
+                (f"Wrong mora [{script_id}]:" f"{expected_txt}" f" != {extructed_txt}")
+            )
         return None
 
     return script_id, feature, labels
@@ -275,7 +290,8 @@ def _split_corpus_by_ids(corpus, id_groups):
     if set(["val", "test"]) == set(_corpus.keys()):
         _corpus["train"] = list(
             filter(
-                lambda x: x[0] not in id_groups["val"] and x[0] not in id_groups["test"],
+                lambda x: x[0] not in id_groups["val"]
+                and x[0] not in id_groups["test"],
                 corpus,
             )
         )
@@ -283,7 +299,9 @@ def _split_corpus_by_ids(corpus, id_groups):
     elif set(["train", "val", "test"]) == set(_corpus.keys()):
         pass
     else:
-        raise NotImplementedError(f"Not supported ID group specification: {_corpus.keys()}")
+        raise NotImplementedError(
+            f"Not supported ID group specification: {_corpus.keys()}"
+        )
 
     return _corpus
 
@@ -339,12 +357,16 @@ def entry(argv=sys.argv):
             ]
             corpus = [
                 future.result()
-                for future in tqdm(futures, desc="Convert corpus to feature", leave=False)
+                for future in tqdm(
+                    futures, desc="Convert corpus to feature", leave=False
+                )
             ]
     else:
         logger.info(f"Processing {len(corpus):,} scripts in a single thread")
         corpus = [
-            _process(feature["nodes"], feature_set, args.accent_status_seq_level, **script)
+            _process(
+                feature["nodes"], feature_set, args.accent_status_seq_level, **script
+            )
             for script, feature in tqdm(
                 zip(corpus, features), desc="Convert corpus to feature", leave=False
             )

@@ -5,12 +5,11 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import cpu_count
 from pathlib import Path
 
+import marine.data.jtalk_dict  # noqa
 from marine.logger import getLogger
 from marine.utils.openjtalk_util import convert_open_jtalk_node_to_feature
 from marine.utils.util import load_json_corpus
-import marine.data.jtalk_dict
 from tqdm import tqdm
-
 
 logger = None
 
@@ -83,11 +82,15 @@ def entry(argv=sys.argv):
             ]
             corpus = [
                 future.result()
-                for future in tqdm(futures, desc="Convert corpus to feature", leave=False)
+                for future in tqdm(
+                    futures, desc="Convert corpus to feature", leave=False
+                )
             ]
     else:
         logger.info(f"Processing {len(corpus):,} scripts in a single thread")
-        corpus = [extract_feature(script["script_id"], script["surface"]) for script in corpus]
+        corpus = [
+            extract_feature(script["script_id"], script["surface"]) for script in corpus
+        ]
 
     # corpus = _sort_corpus_by_script_id(corpus)
 
