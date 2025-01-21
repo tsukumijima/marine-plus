@@ -1,0 +1,612 @@
+# marine 仕様調査書
+
+以下は 0.0.6-post3 時点の情報です。
+
+## 概要
+
+marine は、日本語テキストのアクセントを推定するためのニューラルネットワークベースのツールキットです。
+このツールは、マルチタスク学習を用いて以下の3つの要素を同時に推定します：
+
+1. イントネーションフレーズ（IP）境界
+2. アクセント句（AP）境界
+3. アクセント核（AN）位置
+
+従来の手法では、アクセント句境界とアクセント核位置を別々のモデルで予測していましたが、本ツールではこれらを統合し、
+マルチタスク学習フレームワークの中で共同最適化することで、より高精度なアクセント推定を実現しています。
+
+### 主な特徴
+- マルチタスク学習による統合的なアクセント推定
+- Bi-LSTM + CRF + Attention機構による高精度な予測
+- pyopenjtalkとUniDic-CSJの両方の形態素解析をサポート
+- JSUT-5000コーパスを用いた学習が可能
+
+## 使用方法
+
+### 1. 推論の実行
+
+```python
+from marine.predict import Predictor
+
+# 入力テキストの形態素解析結果を準備
+nodes = [{
+    "surface": "こんにちは",
+    "pos": "感動詞:*:*:*",
+    "pron": "コンニチワ",
+    "c_type": "*",
+    "c_form": "*",
+    "accent_type": 0,
+    "accent_con_type": "-1",
+    "chain_flag": -1
+}]
+
+# 予測器の初期化と実行
+predictor = Predictor()
+result = predictor.predict([nodes])
+
+# アクセントの高低表現で出力
+result_high_low = predictor.predict([nodes], accent_represent_mode="high_low")
+```
+
+### 2. JSUTコーパスでの学習
+
+学習を実行するには、以下のステップを実行します：
+
+1. 環境のセットアップ
+   ```bash
+   pip install -e ".[dev,pyopenjtalk]"  # 開発モード用インストール
+   ```
+
+2. JSUTコーパスの配置
+   - `$HOME/data` にJSUT-5000コーパスを配置
+   - または `jsut_script_path` パラメータで場所を指定
+
+3. 学習の実行
+   ```bash
+   cd recipe/20220912_release
+   ./run.sh --stage 1 --stop_stage 5  # 全ステージ実行
+   ```
+
+各ステージの処理内容：
+1. JSUTコーパスのJSON変換
+2. pyopenjtalkによる特徴量抽出
+3. 語彙の構築
+4. 特徴量のパッケージング
+5. モデルの学習とテスト
+
+## アーキテクチャ
+
+### モデル構造
+
+本ツールは、以下の3つの主要コンポーネントで構成されています：
+
+1. Bi-LSTMエンコーダー
+   - 入力テキストの文脈表現を生成
+   - 双方向LSTMによる時系列処理
+
+2. CRFデコーダー
+   - アクセント句境界の予測
+   - 時系列ラベリングの整合性を保証
+
+3. Attention付きLSTMデコーダー
+   - アクセント核位置の予測
+   - 文脈に応じた注意機構の活用
+
+```mermaid
+graph TD
+    A[入力テキスト] --> B[埋め込み層]
+    B --> C[Bi-LSTM Encoder]
+    C --> D[CRF Decoder]
+    C --> E[Attention LSTM Decoder]
+    D --> F[アクセント句境界]
+    E --> G[アクセント核位置]
+```
+
+### 形態素解析とアクセント推定
+
+本ツールは2つの形態素解析方式をサポートしています：
+
+1. UniDic-CSJ
+   - より詳細な品詞体系
+   - 現代語に特化した活用型・活用形
+   - アクセント型は23種類（0-22）
+   - 語種情報やアクセント修飾型を含む
+
+2. pyopenjtalk
+   - 簡潔な品詞体系
+   - 広範な活用型・活用形
+   - アクセント型は50種類（0-49）
+   - 連結フラグによるアクセント句結合制御
+
+アクセントの表現方法：
+- binary: アクセント核位置を1、それ以外を0で表現
+- high_low: 各モーラの高低を表現（0=低、1=高）
+
+## 実装詳細
+
+### 1. プロジェクト構造
+
+#### 1.1 主要ディレクトリ
+- `marine/`: メインのPythonパッケージ
+  - `bin/`: 実行可能なスクリプト群
+  - `data/`: データ処理関連のコード
+  - `models/`: モデル定義
+  - `modules/`: 共通モジュール
+  - `utils/`: ユーティリティ関数
+  - `criterions/`: 損失関数
+  - `dict/`: 辞書関連
+  - `predict.py`: 推論用のメインコード
+- `recipe/`: 実験用レシピ
+  - `common/`: 共通のシェルスクリプト
+  - `20220912_release/`: リリース用レシピ
+- `tests/`: テストコード
+
+#### 1.2 主要ファイル
+- `recipe/20220912_release/run.sh`: メインの実験実行スクリプト
+- `recipe/common/*.sh`: 共通の処理を行うシェルスクリプト群
+  - `jsut2corpus.sh`: JSUTコーパスをJSON形式に変換
+  - `pack_corpus.sh`: 特徴量をパッケージング
+  - `train.sh`: モデルの学習と評価
+  - `build_vocab.sh`: 語彙の構築
+
+### 2. データセット
+
+#### 2.1 必要なデータ
+- JSUT-5000コーパス（手動アノテーション済み）
+  - デフォルトの配置場所: `$HOME/data`
+  - 設定変更: `jsut_script_path` パラメータで変更可能
+
+#### 2.2 データ処理フロー
+1. JSUTコーパスをJSON形式に変換 (Stage 1)
+2. pyopenjtalkを使用して特徴量を抽出 (Stage 2)
+3. 語彙の構築 (Stage 3)
+4. 特徴量のパッケージング (Stage 4)
+
+### 3. 学習プロセス
+
+#### 3.1 設定パラメータ
+- `accent_status_seq_level`: "mora" (モーラレベル)
+- `accent_status_represent_mode`: "binary" (バイナリ表現)
+- `feature_table_key`: "open-jtalk"
+- `vocab_min_freq`: 2 (最小語彙頻度)
+- `val_test_size`: 100 (検証・テストセットサイズ)
+
+#### 3.2 出力ディレクトリ構造
+- `outputs/[tag]/`
+  - `raw/`: 生コーパスデータ
+  - `model/`: 学習済みモデル
+  - `feature_pack/`: パッケージ化された特徴量
+  - `tensorboard/`: TensorBoard用ログ
+  - `log/`: テストログ
+  - `vocab/`: 語彙データ
+  - `feature/`: 抽出された特徴量
+
+#### 3.3 学習設定
+- トレーニング設定: basic
+- データ形式: mora_based_seq
+- モデル: mtl_lstm_encoder_crf_decoder
+- 損失関数: loglikehood
+- オプティマイザ: adam
+
+### 4. 実行方法
+
+#### 4.1 環境セットアップ
+```bash
+pip install -e ".[dev]"  # 開発モード用インストール
+```
+
+#### 4.2 学習実行
+```bash
+cd recipe/20220912_release
+./run.sh --stage 1 --stop_stage 5  # 全ステージ実行
+```
+
+#### 4.3 ステージ説明
+1. JSUTコーパスのJSON変換
+2. 特徴量抽出
+3. 語彙構築
+4. 特徴量パッケージング
+5. モデル学習とテスト
+
+### 5. 注意点
+
+- pyopenjtalkが必要（特徴量抽出に使用）
+- 学習データは `$HOME/data` に配置する必要がある
+- 既存の語彙・特徴量ディレクトリがある場合は再利用される
+- 各ステージは `--stage` と `--stop_stage` で制御可能 
+
+### 6. 実装詳細
+
+#### 6.1 主要なPythonモジュール
+- `marine/bin/`: 実行可能なスクリプト群
+  - `jsut2corpus.py`: JSUTコーパスをJSON形式に変換するスクリプト
+  - `prepare_features_pyopenjtalk.py`: pyopenjtalkを使用して特徴量を抽出
+  - `build_vocab.py`: 語彙データを構築
+  - `pack_corpus.py`: 特徴量をパッケージング
+  - `train.py`: モデルの学習を実行
+  - `test.py`: モデルの評価を実行
+
+- `marine/models/`: モデル定義
+  - `base_model.py`: 基本モデルクラス
+  - `bilstm_encoder.py`: Bi-LSTM エンコーダー
+  - `crf_decoder.py`: CRF デコーダー
+  - `att_lstm_decoder.py`: Attention付きLSTM デコーダー
+  - `embedding.py`: 埋め込み層の定義
+  - `linear_decoder.py`: 線形デコーダー
+
+- `marine/data/`: データ処理関連
+  - `dataset.py`: データセットクラス
+  - `jtalk_dict.py`: OpenJTalk辞書処理
+  - `pad.py`: パディング処理
+  - `util.py`: データ処理ユーティリティ
+
+#### 6.2 処理フロー
+
+##### 学習時のプロセス
+```mermaid
+graph TD
+    A[JSUT Corpus] --> B[jsut2corpus.py]
+    B --> C[JSON形式コーパス]
+    C --> D[prepare_features_pyopenjtalk.py]
+    D --> E[特徴量]
+    E --> F[build_vocab.py]
+    F --> G[語彙データ]
+    E --> H[pack_corpus.py]
+    G --> H
+    H --> I[パッケージ化された特徴量]
+    I --> J[train.py]
+    J --> K[学習済みモデル]
+```
+
+##### 推論時のプロセス
+```mermaid
+graph TD
+    A[入力テキスト] --> B[predict.py]
+    B --> C[pyopenjtalk特徴量抽出]
+    C --> D[モデル推論]
+    D --> E[アクセント予測結果]
+    
+    subgraph モデル推論
+    D --> F[Bi-LSTMエンコーダー]
+    F --> G[CRFデコーダー]
+    G --> H[アクセント句境界予測]
+    F --> I[Attention LSTMデコーダー]
+    I --> J[アクセント核位置予測]
+    end
+```
+
+#### 6.3 主要な処理の説明
+
+1. データ前処理 (`jsut2corpus.py`)
+   - JSUTコーパスの読み込み
+   - アクセント情報の抽出
+   - JSON形式への変換
+
+2. 特徴量抽出 (`prepare_features_pyopenjtalk.py`)
+   - pyopenjtalkを使用した形態素解析
+   - モーラ単位の特徴量抽出
+   - アクセント情報のエンコード
+
+3. モデル学習 (`train.py`)
+   - データローダーの初期化
+   - モデルの構築
+   - マルチタスク学習の実行
+   - チェックポイントの保存
+
+4. 推論処理 (`predict.py`)
+   - テキストの前処理
+   - 特徴量抽出
+   - モデルによる予測
+   - アクセント情報のデコード
+
+#### 6.4 モデルアーキテクチャ
+
+```mermaid
+graph TD
+    A[入力テキスト] --> B[埋め込み層]
+    B --> C[Bi-LSTM Encoder]
+    C --> D[CRF Decoder]
+    C --> E[Attention LSTM Decoder]
+    D --> F[アクセント句境界]
+    E --> G[アクセント核位置]
+```
+
+### 7. 依存関係
+
+- PyTorch: ディープラーニングフレームワーク
+- pyopenjtalk: 形態素解析と特徴量抽出
+- hydra-core: 設定管理
+- numpy: 数値計算
+- pandas: データ処理
+- tqdm: プログレスバー 
+
+### 8. 形態素解析とアクセント推定の方式
+
+#### 8.1 UniDic-CSJとpyopenjtalkの違い
+
+##### 8.1.1 品詞体系の違い
+- UniDic-CSJ: より詳細な品詞体系（例：名詞:普通名詞:サ変可能:*）
+- OpenJTalk: より簡潔な品詞体系（例：名詞:一般:*:*）
+
+##### 8.1.2 活用型・活用形の違い
+- UniDic-CSJ: 現代語に特化した活用型・活用形（例：「未然形-サ」「連用形-撥音便」など）
+- OpenJTalk: より広範な活用型・活用形（例：「カ変・クル」「五段・ワ行促音便」など）
+
+##### 8.1.3 アクセント情報の扱い
+- UniDic-CSJ: アクセント型は0-22までの23種類
+- OpenJTalk: アクセント型は0-49までの50種類をサポート
+
+##### 8.1.4 特徴量の違い
+UniDic-CSJ:
+- surface（表層形）
+- pron（発音）
+- pos（品詞）
+- c_type（活用型）
+- c_form（活用形）
+- accent_type（アクセント型）
+- word_type（語種）
+- accent_con_type（アクセント結合型）
+- accent_mod_type（アクセント修飾型）
+
+OpenJTalk:
+- surface（表層形）
+- pron（発音）
+- pos（品詞）
+- c_type（活用型）
+- c_form（活用形）
+- accent_type（アクセント型）
+- accent_con_type（アクセント結合型）
+- chain_flag（連結フラグ）
+
+#### 8.2 アクセント表現モード
+- binary: アクセント核の位置を1、それ以外を0で表現
+- high_low: アクセントの高低を表現（0=低、1=高）
+
+### 9. 実装詳細（全Pythonファイル）
+
+#### 9.1 メインパッケージ（marine/）
+
+##### bin/
+- `jsut2corpus.py`: JSUTコーパスをJSON形式に変換
+  - アクセント情報の抽出と正規化
+  - モーラ単位のアノテーション処理
+  - アクセント句境界とイントネーション句境界の処理
+
+- `prepare_features_pyopenjtalk.py`: pyopenjtalkによる特徴量抽出
+  - 形態素解析の実行
+  - 特徴量の抽出と変換
+  - マルチプロセスによる並列処理
+
+- `build_vocab.py`: 語彙データの構築
+  - 頻度に基づく語彙のフィルタリング
+  - 特殊トークンの追加
+  - 語彙のシリアライズ
+
+- `pack_corpus.py`: 特徴量のパッケージング
+  - 特徴量の正規化
+  - データセットの分割
+  - 特徴量のパッケージング
+
+- `train.py`: モデルの学習
+  - データローダーの初期化
+  - モデルの構築と学習
+  - 検証と評価
+  - チェックポイントの保存
+
+- `test.py`: モデルの評価
+  - テストデータの読み込み
+  - モデルの評価
+  - 結果の出力
+
+##### models/
+- `base_model.py`: 基本モデルクラス
+  - モデルの基本構造
+  - 共通メソッドの定義
+
+- `bilstm_encoder.py`: Bi-LSTMエンコーダー
+  - 双方向LSTMの実装
+  - 文脈表現の生成
+
+- `crf_decoder.py`: CRFデコーダー
+  - 条件付き確率場の実装
+  - アクセント句境界の予測
+
+- `att_lstm_decoder.py`: Attention付きLSTMデコーダー
+  - 注意機構の実装
+  - アクセント核位置の予測
+
+- `embedding.py`: 埋め込み層
+  - 特徴量の埋め込み
+  - 埋め込みの結合
+
+- `linear_decoder.py`: 線形デコーダー
+  - 線形層による予測
+  - 出力の正規化
+
+##### data/
+- `dataset.py`: データセットクラス
+  - データの読み込みと前処理
+  - バッチの生成
+
+- `jtalk_dict.py`: OpenJTalk辞書処理
+  - ユーザー辞書の読み込み
+  - 辞書の更新
+
+- `pad.py`: パディング処理
+  - シーケンスのパディング
+  - マスクの生成
+
+- `feature/feature_table.py`: 特徴量テーブル
+  - 特徴量の定義
+  - 変換テーブルの管理
+
+##### utils/
+- `openjtalk_util.py`: OpenJTalk関連ユーティリティ
+  - 特徴量の変換
+  - アクセント情報の処理
+
+- `g2p_util/util.py`: G2P（Grapheme-to-Phoneme）ユーティリティ
+  - 発音の変換
+  - モーラ分割
+
+- `util.py`: 一般ユーティリティ
+  - データ読み込み
+  - 文字列処理
+
+##### criterions/
+- 損失関数の実装
+- マルチタスク学習の損失計算
+
+##### dict/
+- アクセント句境界の辞書
+- アクセントステータスの辞書
+
+#### 9.2 ルートファイル
+- `predict.py`: 推論用メインコード
+  - モデルのロード
+  - 特徴量抽出
+  - アクセント予測
+
+- `visualize_diff.py`: 差分の可視化
+  - 予測結果の比較
+  - 差分の表示 
+
+## 出力と評価
+
+### 出力形式
+```python
+{
+    'mora': [['コ', 'ン', 'ニ', 'チ', 'ワ']],
+    'intonation_phrase_boundary': [[0, 0, 0, 0, 0]],
+    'accent_phrase_boundary': [[0, 0, 0, 0, 0]],
+    'accent_status': [[0, 1, 1, 1, 1]]  # high_lowモード
+}
+```
+
+### 性能評価
+論文での報告によると：
+- アクセント推定精度: 80.4%（従来手法より6.67%向上）
+- 韻律の自然さ: 4.29/5.0（平均オピニオンスコア）
+
+## 主要な依存関係
+- PyTorch: ディープラーニングフレームワーク
+- pyopenjtalk: 形態素解析と特徴量抽出
+- hydra-core: 設定管理
+- numpy, pandas: データ処理
+- tqdm: プログレスバー
+
+### 10. pyopenjtalkとmarineの連携
+
+#### 10.1 学習時のpyopenjtalk利用
+
+##### 10.1.1 特徴量抽出（`marine/bin/prepare_features_pyopenjtalk.py`）
+1. 形態素解析の実行
+   ```python
+   # pyopenjtalkによるNJDFeature取得
+   njd_features = run_frontend(text)
+   ```
+   取得される情報：
+   - string: 表層形
+   - pos: 品詞情報（例：'名詞:一般:*:*'）
+   - ctype: 活用型
+   - cform: 活用形
+   - orig: 原形
+   - read: 読み
+   - pron: 発音形式
+   - acc: アクセント型
+   - mora_size: モーラ数
+   - chain_flag: アクセント句の連結フラグ
+
+2. 特徴量の変換と正規化
+   - モーラ単位の分割
+   - アクセント情報の正規化
+   - 品詞情報の統一化
+
+##### 10.1.2 データセット作成（`marine/data/dataset.py`）
+- pyopenjtalkの特徴量をモデルの入力形式に変換
+- バッチ処理のための前処理
+- パディング処理の実装
+
+#### 10.2 推論時のpyopenjtalk利用の流れ (pyopenjtalk 内コードも含む)
+
+##### 10.2.1 テキスト解析（`marine/predict.py`）
+1. 入力テキストの形態素解析
+   ```python
+   from pyopenjtalk import run_frontend
+   njd_features = run_frontend(text)
+   ```
+
+2. 特徴量変換（`marine/utils/openjtalk_util.py`）
+   ```python
+   def convert_njd_feature_to_marine_feature(njd_features):
+       # NJDFeatureをmarineの特徴量形式に変換
+       # アクセント情報、品詞情報、読み情報などを抽出
+   ```
+
+##### 10.2.2 アクセント推定と後処理
+1. アクセント推定（`marine/predict.py`）
+   ```python
+   marine_results = predictor.predict([marine_feature])
+   ```
+
+2. 推定結果の統合（`pyopenjtalk/utils.py`）
+   ```python
+   def merge_njd_marine_features(njd_features, marine_results):
+       # marineの推定結果をNJDFeatureに統合
+       for node_index, njd_feature in enumerate(njd_features):
+           if feature_key == 'acc':
+               _feature['acc'] = int(marine_accs[node_index])
+           elif feature_key == 'chain_flag':
+               _feature[feature_key] = int(marine_chain_flags[node_index])
+   ```
+
+3. アクセント情報の後処理
+   - フィラー語のアクセント調整（`modify_filler_accent`）
+   ```python
+   def modify_filler_accent(njd):
+       # フィラー語のアクセントを適切に調整
+       if features['pos'] == 'フィラー':
+           if features['acc'] > features['mora_size']:
+               features['acc'] = 0
+   ```
+
+   - 漢字読みの修正（`modify_kanji_yomi`）
+   ```python
+   def modify_kanji_yomi(text, pyopen_njd, multi_read_kanji_list):
+       # 複数の読み方を持つ漢字の読みを修正
+       sudachi_yomi = sudachi_analyze(text, multi_read_kanji_list)
+   ```
+
+   - アクセント核位置の調整（`retreat_acc_nuc`）
+   ```python
+   def retreat_acc_nuc(njd_features):
+       # 長母音、重母音、撥音がアクセント核の場合の調整
+       inappropriate_for_nuclear_chars = ['ー', 'ッ', 'ン']
+   ```
+
+   - 連結後のアクセント修正（`modify_acc_after_chaining`）
+   ```python
+   def modify_acc_after_chaining(njd_features):
+       # 品詞「特殊・マス」などの特殊なケースの処理
+       if njd['ctype'] == '特殊・マス':
+           head['acc'] = phase_len + 1
+   ```
+
+#### 10.3 特徴的な処理
+
+##### 10.3.1 名詞アクセントの保持（`pyopenjtalk/__init__.py`）
+```python
+def preserve_noun_accent(input_njd, predicted_njd):
+    # 特定の名詞については元のアクセントを保持
+    for f_input, f_pred in zip(input_njd, predicted_njd):
+        if f_pred['pos'] == '名詞' and f_pred['string'] not in MULTI_READ_KANJI_LIST:
+            f_pred['acc'] = f_input['acc']
+```
+
+##### 10.3.2 複数読みの漢字処理（`pyopenjtalk/__init__.py`）
+```python
+MULTI_READ_KANJI_LIST = [
+    '風','何','観','方','出','他','時','上','下','君','手','嫌','表',
+    '対','色','人','前','後','角','金','頭','筆','水','間','棚',
+    # その他の複数読みを持つ漢字
+]
+```
