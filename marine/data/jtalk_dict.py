@@ -13,9 +13,9 @@ USER_DICT_DIC = str(Path(__file__).parent.joinpath("user_dict.dic"))
 def load_user_dict():
     if os.path.isfile(USER_DICT_CSV):
         if sum([1 for _ in open(USER_DICT_CSV, encoding="utf-8")]) != 0:
-            pyopenjtalk.create_user_dict(USER_DICT_CSV, USER_DICT_DIC)
+            pyopenjtalk.mecab_dict_index(USER_DICT_CSV, USER_DICT_DIC)
             print(USER_DICT_DIC)
-            pyopenjtalk.set_user_dict(USER_DICT_DIC)
+            pyopenjtalk.update_global_jtalk_with_user_dict(USER_DICT_DIC)
 
 
 def dictupdate_byrecord(record, dict_records=None):

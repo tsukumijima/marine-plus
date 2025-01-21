@@ -113,21 +113,21 @@ class FeatureSet(object):
 
     def convert_nodes_to_feature(self, nodes):
         """
-         Input dict型のリスト
-
-         exsample
-
+        Input: dict型のリスト
+        example:
         [
-         {   "surface": "今回",
-             "pron": "コンカイ",
-             "pos": "名詞:副詞可能:*:*",
-             "c_type": "*",
-             "c_form": "*",
-             "accent_type": 1,
-             "accent_con_type": "C1",
-             "chain_flag": -1
-         },...
-
+          {
+            "surface": "今回",
+            "pron": "コンカイ",
+            "pos": "名詞:副詞可能:*:*",
+            "c_type": "*",
+            "c_form": "*",
+            "accent_type": 1,
+            "accent_con_type": "C1",
+            "chain_flag": -1
+          },
+          ...
+        ]
         """
 
         features = {key: np.array([], np.uint8) for key in self.feature_to_id}
