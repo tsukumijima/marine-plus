@@ -191,7 +191,7 @@ graph TD
 
 #### 4.1 環境セットアップ
 ```bash
-pip install -e ".[dev]"  # 開発モード用インストール
+pip install -e ".[dev,pyopenjtalk]"  # 開発モード用インストール
 ```
 
 #### 4.2 学習実行
@@ -212,7 +212,7 @@ cd recipe/20220912_release
 - pyopenjtalkが必要（特徴量抽出に使用）
 - 学習データは `$HOME/data` に配置する必要がある
 - 既存の語彙・特徴量ディレクトリがある場合は再利用される
-- 各ステージは `--stage` と `--stop_stage` で制御可能 
+- 各ステージは `--stage` と `--stop_stage` で制御可能
 
 ### 6. 実装詳細
 
@@ -264,7 +264,7 @@ graph TD
     B --> C[pyopenjtalk特徴量抽出]
     C --> D[モデル推論]
     D --> E[アクセント予測結果]
-    
+
     subgraph モデル推論
     D --> F[Bi-LSTMエンコーダー]
     F --> G[CRFデコーダー]
@@ -317,7 +317,7 @@ graph TD
 - hydra-core: 設定管理
 - numpy: 数値計算
 - pandas: データ処理
-- tqdm: プログレスバー 
+- tqdm: プログレスバー
 
 ### 8. 形態素解析とアクセント推定の方式
 
@@ -468,7 +468,7 @@ OpenJTalk:
 
 - `visualize_diff.py`: 差分の可視化
   - 予測結果の比較
-  - 差分の表示 
+  - 差分の表示
 
 ## 出力と評価
 
