@@ -20,13 +20,13 @@ vocab_min_freq=2
 ## When exist_target_id_dir given, this parameter will be ignored
 val_test_size=100
 
-jsut_script_path=$HOME/data
+jsut_script_path=$script_dir/data
 output_dir=$script_dir/outputs
 tag=20250122_marine-plus
 
-exist_vocab_dir=$COMMON_ROOT/database/20220912_jsut_vocab_min_2
-exist_feature_dir=$COMMON_ROOT/database/20220912_auto_annotated_feature
-exist_target_id_dir=$COMMON_ROOT/database/20220912_jsut_script_ids
+exist_vocab_dir=""  # 常に再構築
+exist_feature_dir=""  # 常に再構築
+exist_target_id_dir=""  # 常に再構築
 
 . $COMMON_ROOT/parse_options.sh || exit 1
 
@@ -72,8 +72,8 @@ checkpoint_dir=$model_dir/$tag
 
 
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
-    echo "stage 1: Convert jsut to json"
-    . $COMMON_ROOT/jsut2corpus.sh
+    echo "stage 1: Convert raw corpus to json"
+    . $COMMON_ROOT/make_raw_corpus.sh
 fi
 
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ] && [ -z ${exist_feature_dir} ]; then

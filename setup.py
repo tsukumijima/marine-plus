@@ -57,6 +57,7 @@ setup(
             "flake8-bugbear",
             "isort>=4.3",
             "click",
+            "pandas",
         ],
         "docs": [
             "sphinx",
@@ -72,6 +73,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
+            "marine-make-raw-corpus = marine.bin.make_raw_corpus:entry",
             "marine-jsut2corpus = marine.bin.jsut2corpus:entry",
             "marine-build-vocab = marine.bin.build_vocab:entry",
             "marine-pack-corpus = marine.bin.pack_corpus:entry",

@@ -265,10 +265,8 @@ def load_yaml_corpus(
     annotation_file_name,
 ):
 
-    text_yaml_path = os.path.join(yaml_corpus_dir, "text_kana", text_file_name)
-    annotation_yaml_path = os.path.join(
-        yaml_corpus_dir, "e2e_symbol", annotation_file_name
-    )
+    text_yaml_path = os.path.join(yaml_corpus_dir, text_file_name)
+    annotation_yaml_path = os.path.join(yaml_corpus_dir, annotation_file_name)
 
     scripts = []
     texts = {}
