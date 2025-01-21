@@ -11,6 +11,7 @@ recipe*/*/downloads
 recipe*/*/tensorboard
 recipe*/*/outputs
 !recipe*/*/database
+wrong_mora_info.csv
 
 # For MacOS
 .DS_Store
