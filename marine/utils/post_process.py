@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
+from marine.types import AccentRepresentMode
 from marine.utils.g2p_util import pron2mora
 from marine.utils.g2p_util.g2p import ACCENT_REPRESENT_FUNC_TABLE
 
@@ -68,7 +69,7 @@ def convert_feature_to_value(
     target: str,
     pron: str,
     label: int,
-) -> tuple[list[str], list[int] | dict[Literal["binary", "high_low"], list[int]]]:
+) -> tuple[list[str], list[int] | dict[AccentRepresentMode, list[int]]]:
     if target == "accent_status":
         moras = pron2mora(pron)
         assert isinstance(moras, list)
@@ -148,7 +149,7 @@ def apply_postprocess_dict(
     boundary: list[Literal[0, 1]],
     postprocess_targets: re.Pattern[Any],
     postprocess_vocab: dict[str, Any],
-    accent_represent_mode: Literal["binary", "high_low"] = "binary",
+    accent_represent_mode: AccentRepresentMode = "binary",
 ) -> list[int]:
     surfaces = [node["surface"] for node in nodes]
     surface = "".join(surfaces)

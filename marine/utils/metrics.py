@@ -1,6 +1,7 @@
 from typing import Any, Literal
 
 import torch
+from marine.types import AccentRepresentMode
 from marine.utils.util import convert_ap_based_accent_to_mora_based_accent
 from torchmetrics import F1Score, Metric, MetricCollection
 
@@ -45,15 +46,13 @@ class MultiTaskMetrics(object):
         phase: Literal["train", "val", "test"],
         task_label_sizes: dict[str, int],
         average: Literal["micro", "macro", "weighted", "none"] = "macro",
-        accent_represent_mode: Literal["binary", "high_low"] = "binary",
+        accent_represent_mode: AccentRepresentMode = "binary",
         require_ap_level_f1_score: bool = False,
         device: Literal["cpu", "cuda"] = "cpu",
     ) -> None:
         self.phase = phase
         self.tasks = task_label_sizes.keys()
-        self.accent_represent_mode: Literal["binary", "high_low"] = (
-            accent_represent_mode
-        )
+        self.accent_represent_mode: AccentRepresentMode = accent_represent_mode
         self.require_ap_level_f1_score = require_ap_level_f1_score
         self.device = device
 

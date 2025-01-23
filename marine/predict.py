@@ -2,7 +2,7 @@ import re
 import sys
 import warnings
 from pathlib import Path
-from typing import Any, Literal, Mapping, cast
+from typing import Any, Mapping, cast
 
 import torch
 from marine.data.feature.feature_set import FeatureSet
@@ -13,6 +13,7 @@ from marine.models import (
     LinearDecoder,
     init_model,
 )
+from marine.types import AccentRepresentMode
 from marine.utils.openjtalk_util import convert_open_jtalk_format_label
 from marine.utils.post_process import apply_postprocess_dict, load_postprocess_vocab
 from marine.utils.pretrained import retrieve_pretrained_model
@@ -138,7 +139,7 @@ class Predictor:
     def predict(
         self,
         sentences: list[list[dict[str, Any]]],
-        accent_represent_mode: Literal["binary", "high_low"] = "binary",
+        accent_represent_mode: AccentRepresentMode = "binary",
         annotates: dict[str, Any] | None = None,
         require_open_jtalk_format: bool = False,
     ) -> dict[str, list[Any]]:
@@ -284,7 +285,7 @@ class Predictor:
         ap_lengths: list[int] | None = None,
         ap_outputs: Tensor | None = None,
         prev_task_outputs: dict[str, Tensor] | None = None,
-        accent_represent_mode: Literal["binary", "high_low"] = "binary",
+        accent_represent_mode: AccentRepresentMode = "binary",
     ) -> list[list[int]]:
         predicts = []
 

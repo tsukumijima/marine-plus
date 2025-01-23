@@ -1,5 +1,6 @@
 from typing import Any, Callable, Literal
 
+from marine.types import AccentRepresentMode
 from numpy.typing import NDArray
 
 from .accent import (
@@ -20,7 +21,7 @@ from .util import (
 )
 
 ACCENT_REPRESENT_FUNC_TABLE: dict[
-    Literal["binary", "high_low"], dict[str, Callable[[int, int, int], Literal[0, 1]]]
+    AccentRepresentMode, dict[str, Callable[[int, int, int], Literal[0, 1]]]
 ] = {
     "binary": {
         "represent_accent": represent_accent_binary,
@@ -36,7 +37,7 @@ ACCENT_REPRESENT_FUNC_TABLE: dict[
 def pron2mora(
     pron: str | list[str] | NDArray[Any],
     accent: int | None = None,
-    represent_mode: Literal["binary", "high_low"] = "binary",
+    represent_mode: AccentRepresentMode = "binary",
 ) -> list[str] | tuple[list[str], list[Literal[0, 1]]]:
     moras: list[str] = []
     i = 0
@@ -163,7 +164,7 @@ def mora2phon(
 def pron2phon(
     pron: str,
     accent: int | None = None,
-    represent_mode: Literal["binary", "high_low"] = "binary",
+    represent_mode: AccentRepresentMode = "binary",
 ) -> list[str] | tuple[list[str], list[int], list[Literal[0, 1]]]:
     if represent_mode not in ACCENT_REPRESENT_FUNC_TABLE.keys():
         raise NotImplementedError(f"Not Implemented mode : {represent_mode}")

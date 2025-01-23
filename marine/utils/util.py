@@ -4,11 +4,12 @@ import json
 import random
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import torch
 from marine.data.feature.feature_set import FeatureSet
+from marine.types import AccentRepresentMode
 from marine.utils.g2p_util import mora2phon, pron2mora
 from marine.utils.regex import has_longvowel
 from numpy.typing import NDArray
@@ -260,7 +261,7 @@ def expand_word_label_to_mora(
 def _convert_ap_based_accent_to_mora_based_accent(
     ap_accents: torch.Tensor,
     phrases: torch.Tensor,
-    mode: Literal["binary", "high_low"] = HIGH_LOW_ACCENT_REPRESENT_MODE,
+    mode: AccentRepresentMode = HIGH_LOW_ACCENT_REPRESENT_MODE,
     mora: list[str] | None = None,
     accent_phrase_boundary_label: int = 2,
 ) -> NDArray[Any]:
@@ -345,7 +346,7 @@ def convert_ap_based_accent_to_mora_based_accent(
     accent_phrase_boundaries: torch.Tensor,
     ap_seq_masks: torch.Tensor,
     mora_seq_masks: torch.Tensor,
-    accent_represent_mode: Literal["binary", "high_low"] = BINARY_ACCENT_REPRESENT_MODE,
+    accent_represent_mode: AccentRepresentMode = BINARY_ACCENT_REPRESENT_MODE,
 ) -> NDArray[Any]:
     """Convert accent phrase-based accent status sequence to mora-based."""
     mora_accent_statuses = np.array([], dtype=np.int64)
@@ -412,8 +413,8 @@ def convert_label_by_accent_representation_model(
     mora_based_accents: torch.Tensor | NDArray[Any],
     accent_phrase_boundary: torch.Tensor | NDArray[Any],
     moras: list[str],
-    current_accent_represent_mode: Literal["binary", "high_low"],
-    target_accent_represent_mode: Literal["binary", "high_low"],
+    current_accent_represent_mode: AccentRepresentMode,
+    target_accent_represent_mode: AccentRepresentMode,
     binary_accent_nucleus_label: int = 2,
     high_low_accent_nucleus_label: int = 1,
     accent_phrase_boundary_label: int = 2,
