@@ -11,7 +11,6 @@ from joblib import dump, load
 from marine.data.feature.feature_set import FeatureSet
 from marine.logger import getLogger
 from marine.utils.g2p_util import pron2mora
-from marine.utils.openjtalk_util import print_diff_hl
 from marine.utils.util import load_json_corpus, split_corpus
 from tqdm import tqdm
 
@@ -191,7 +190,7 @@ def _process(
             expected_txt = "".join(
                 feature_set.convert_id_to_feature("mora", punct_removed_expected_mora)
             )
-            extructed_txt = "".join(
+            extracted_txt = "".join(
                 feature_set.convert_id_to_feature("mora", punct_removed_extracted_mora)
             )
             try:
@@ -238,16 +237,16 @@ def _process(
             expected_txt = "".join(
                 feature_set.convert_id_to_feature("mora", punct_removed_expected_mora)
             )
-            extructed_txt = "".join(
+            extracted_txt = "".join(
                 feature_set.convert_id_to_feature("mora", punct_removed_extracted_mora)
             )
             # print(script_id)
             # print(print_diff_hl(expected_txt, extructed_txt))
-            with open("./wrong_mora_info.csv", mode="w", encoding="utf-8") as f:
-                f.write("{}|{}|{}\n".format(script_id, extructed_txt, expected_txt))
+            with open("./wrong_mora_info.csv", mode="a", encoding="utf-8") as f:
+                f.write("{}|{}|{}\n".format(script_id, extracted_txt, expected_txt))
 
             logger.debug(
-                (f"Wrong mora [{script_id}]:" f"{expected_txt}" f" != {extructed_txt}")
+                (f"Wrong mora [{script_id}]:" f"{expected_txt}" f" != {extracted_txt}")
             )
         return None
 
@@ -312,6 +311,10 @@ def entry(argv=sys.argv):
     args = get_parser().parse_args(argv[1:])
     logger = getLogger(args.verbose)
     logger.debug(args)
+
+    # すでに wrong_mora_info.csv がある場合は削除
+    if Path("./wrong_mora_info.csv").exists():
+        Path("./wrong_mora_info.csv").unlink()
 
     # Init feature-set
     feature_set = FeatureSet(args.vocab_path, feature_table_key=args.feature_table_key)

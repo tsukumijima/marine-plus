@@ -265,6 +265,6 @@ def print_diff_hl(ground_truth, target):
             pass
         result += character
 
-    print(f"ground truth : {ground_truth}")
-    print(f"target string: {target}")
-    print(f"diff result  : {result}")
+    print(f"  OpenJTalk : {ground_truth}")
+    print(f" Annotation : {target}")
+    print(f"Diff Result : {result}")
