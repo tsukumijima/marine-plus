@@ -243,7 +243,7 @@ def _process(
             )
             # print(script_id)
             # print(print_diff_hl(expected_txt, extructed_txt))
-            with open("./wrong_mora_info.csv", mode="a", encoding="utf-8") as f:
+            with open("./wrong_mora_info.csv", mode="w", encoding="utf-8") as f:
                 f.write("{}|{}|{}\n".format(script_id, extructed_txt, expected_txt))
 
             logger.debug(

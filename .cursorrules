@@ -689,7 +689,7 @@ MULTI_READ_KANJI_LIST = [
    ```python
    # 発音の一致確認と記録
    if not np.array_equal(punct_removed_extracted_mora, punct_removed_expected_mora):
-       with open("./wrong_mora_info.csv", mode="a", encoding="utf-8") as f:
+       with open("./wrong_mora_info.csv", mode="w", encoding="utf-8") as f:
            f.write("{}|{}|{}\n".format(script_id, extructed_txt, expected_txt))
    ```
 
