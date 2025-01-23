@@ -1,11 +1,20 @@
+from __future__ import annotations
+
 import json
 import random
 from logging import getLogger
+from pathlib import Path
+from typing import Any, Literal, TYPE_CHECKING
 
 import numpy as np
 import torch
+from marine.data.feature.feature_set import FeatureSet
 from marine.utils.g2p_util import mora2phon, pron2mora
 from marine.utils.regex import has_longvowel
+from numpy.typing import NDArray
+
+if TYPE_CHECKING:
+    from marine.utils.metrics import MultiTaskMetrics
 
 logger = getLogger(__name__)
 
@@ -54,14 +63,14 @@ PUNCTUATION_FULL_TO_HALF_TABLE = {
 PUNCTUATION_FULL_TO_HALF_TRANS = str.maketrans(PUNCTUATION_FULL_TO_HALF_TABLE)
 
 
-def init_seed(seed):
+def init_seed(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
 
-def load_json_corpus(file_path, suffix="json"):
+def load_json_corpus(file_path: Path, suffix: str = "json") -> list[dict[str, Any]]:
     """Retrieve a list of corpus's path."""
     corpus = []
 
@@ -78,13 +87,13 @@ def load_json_corpus(file_path, suffix="json"):
 
 
 def split_corpus(
-    corpus,
-    valid_data_ratio=0.05,
-    test_data_ratio=0.05,
-    shuffle=True,
-    random_state=1,
-    absolute_test_size=-1,
-):
+    corpus: list[Any],
+    valid_data_ratio: float = 0.05,
+    test_data_ratio: float = 0.05,
+    shuffle: bool = True,
+    random_state: int = 1,
+    absolute_test_size: int = -1,
+) -> dict[str, Any]:
     try:
         from sklearn.model_selection import train_test_split
     except BaseException:  # noqa
@@ -124,14 +133,14 @@ def split_corpus(
     return {"train": train, "val": valid, "test": test}
 
 
-def sequence_mask(lengths, max_len=None):
+def sequence_mask(lengths: torch.Tensor, max_len: int | None = None) -> torch.Tensor:
     """Compute sequence mask."""
     batch_size = lengths.size(0)
 
     if max_len is None:
         max_len = lengths.max().item()
 
-    ranges = torch.arange(0, max_len, device=lengths.device).long()
+    ranges = torch.arange(0, max_len, device=lengths.device).long()  # type: ignore
     ranges = ranges.unsqueeze(0).expand(batch_size, max_len)
     ranges = torch.autograd.Variable(ranges)
 
@@ -141,7 +150,11 @@ def sequence_mask(lengths, max_len=None):
     return mask
 
 
-def pack_inputs(inputs, embedding_keys, device):
+def pack_inputs(
+    inputs: dict[str, Any],
+    embedding_keys: list[str],
+    device: torch.device,
+) -> dict[str, Any]:
     """Covnert batch to tensor for input"""
     embeddings = {key: inputs[key].to(device) for key in embedding_keys}
 
@@ -154,7 +167,7 @@ def pack_inputs(inputs, embedding_keys, device):
     return inputs
 
 
-def pack_outputs(outputs, device):
+def pack_outputs(outputs: dict[str, Any], device: torch.device) -> dict[str, Any]:
     """Covnert batch to tensor for output"""
     outputs = {
         task: {
@@ -167,7 +180,10 @@ def pack_outputs(outputs, device):
     return outputs
 
 
-def pad_incomplete_accent_logits(logits, target_mask):
+def pad_incomplete_accent_logits(
+    logits: torch.Tensor,
+    target_mask: torch.Tensor,
+) -> torch.Tensor:
     """Add pad token for logit with wrong ap length"""
     if logits.size(1) > target_mask.size(1):
         logits = logits[:, : target_mask.size(1), :]
@@ -179,7 +195,11 @@ def pad_incomplete_accent_logits(logits, target_mask):
     return logits
 
 
-def get_ap_length(accent_phrases, masks, accent_phrase_bondary_label=2):
+def get_ap_length(
+    accent_phrases: torch.Tensor,
+    masks: torch.Tensor,
+    accent_phrase_bondary_label: int = 2,
+) -> list[int]:
     """Count number of accent phrase boundary in sequence.
     Args:
         accent_phrases (tensor): The sequence represents accent phrase.
@@ -189,7 +209,7 @@ def get_ap_length(accent_phrases, masks, accent_phrase_bondary_label=2):
     Returns:
         list: A list of lengths for accent phrase boundary.
     """
-    lengths = []
+    lengths: list[int] = []
 
     for accent_phrase, mask in zip(accent_phrases, masks):
         accent_phrase = accent_phrase[mask]
@@ -199,7 +219,12 @@ def get_ap_length(accent_phrases, masks, accent_phrase_bondary_label=2):
     return lengths
 
 
-def expand_word_label_to_mora(labels, moras, boundaries, target):
+def expand_word_label_to_mora(
+    labels: list[list[int]],
+    moras: list[list[str]],
+    boundaries: list[int],
+    target: str,
+) -> list[list[int]]:
     """Convert word-basd label sequence to mora-based label sequence."""
     mora_labels = []
 
@@ -233,12 +258,12 @@ def expand_word_label_to_mora(labels, moras, boundaries, target):
 
 
 def _convert_ap_based_accent_to_mora_based_accent(
-    ap_accents,
-    phrases,
-    mode=HIGH_LOW_ACCENT_REPRESENT_MODE,
-    mora=None,
-    accent_phrase_boundary_label=2,
-):
+    ap_accents: torch.Tensor,
+    phrases: torch.Tensor,
+    mode: Literal["binary", "high_low"] = HIGH_LOW_ACCENT_REPRESENT_MODE,
+    mora: list[str] | None = None,
+    accent_phrase_boundary_label: int = 2,
+) -> NDArray[Any]:
     """Convert accent phrase-based accent status sequence to mora-based."""
     assert mode in AVAILABLE_ACCENT_REPRESENT_MODES, (
         f"Not supported representation mode {mode}:",
@@ -274,7 +299,7 @@ def _convert_ap_based_accent_to_mora_based_accent(
                 moras = ["*"] * len(phrase)
 
             # convert to 0-based label to index
-            accent_label = accent.item() - 2
+            accent_label = int(accent.item() - 2)
             mora_accent = [0] * len(phrase)
 
             if (
@@ -289,7 +314,7 @@ def _convert_ap_based_accent_to_mora_based_accent(
                 moras = ["*"] * len(phrase)
 
             # convert to 0-based label to index
-            accent_label = accent.item() - 1
+            accent_label = int(accent.item() - 1)
 
             # ignore accent located at out of mora seq
             if accent_label > len(moras):
@@ -316,12 +341,12 @@ def _convert_ap_based_accent_to_mora_based_accent(
 
 
 def convert_ap_based_accent_to_mora_based_accent(
-    accent_statuses,
-    accent_phrase_boundaries,
-    ap_seq_masks,
-    mora_seq_masks,
-    accent_represent_mode=BINARY_ACCENT_REPRESENT_MODE,
-):
+    accent_statuses: torch.Tensor,
+    accent_phrase_boundaries: torch.Tensor,
+    ap_seq_masks: torch.Tensor,
+    mora_seq_masks: torch.Tensor,
+    accent_represent_mode: Literal["binary", "high_low"] = BINARY_ACCENT_REPRESENT_MODE,
+) -> NDArray[Any]:
     """Convert accent phrase-based accent status sequence to mora-based."""
     mora_accent_statuses = np.array([], dtype=np.int64)
 
@@ -352,8 +377,9 @@ def convert_ap_based_accent_to_mora_based_accent(
 
 
 def get_accent_nucleus_in_binary_accent_stauts_seq(
-    ap_based_clipped_accents, binary_accent_nucleus_label=2
-):
+    ap_based_clipped_accents: NDArray[Any],
+    binary_accent_nucleus_label: int = 2,
+) -> int:
     accent_nucleus_index = np.where(
         ap_based_clipped_accents == binary_accent_nucleus_label
     )[0]
@@ -368,8 +394,9 @@ def get_accent_nucleus_in_binary_accent_stauts_seq(
 
 
 def get_accent_nucleus_in_high_low_accent_stauts_seq(
-    ap_based_clipped_accents, high_low_accent_nucleus_label=1
-):
+    ap_based_clipped_accents: NDArray[Any],
+    high_low_accent_nucleus_label: int = 1,
+) -> int:
     low_pitch_locations = list(
         np.where(ap_based_clipped_accents == high_low_accent_nucleus_label)[0]
     )
@@ -382,15 +409,15 @@ def get_accent_nucleus_in_high_low_accent_stauts_seq(
 
 
 def convert_label_by_accent_representation_model(
-    mora_based_accents,
-    accent_phrase_boundary,
-    moras,
-    current_accent_represent_mode,
-    target_accent_represent_mode,
-    binary_accent_nucleus_label=2,
-    high_low_accent_nucleus_label=1,
-    accent_phrase_boundary_label=2,
-):
+    mora_based_accents: torch.Tensor | NDArray[Any],
+    accent_phrase_boundary: torch.Tensor | NDArray[Any],
+    moras: list[str],
+    current_accent_represent_mode: Literal["binary", "high_low"],
+    target_accent_represent_mode: Literal["binary", "high_low"],
+    binary_accent_nucleus_label: int = 2,
+    high_low_accent_nucleus_label: int = 1,
+    accent_phrase_boundary_label: int = 2,
+) -> NDArray[Any]:
     """Convert accent label for following with target accent representation mode"""
     assert current_accent_represent_mode != target_accent_represent_mode
     assert current_accent_represent_mode in AVAILABLE_ACCENT_REPRESENT_MODES
@@ -445,8 +472,8 @@ def convert_label_by_accent_representation_model(
     return np.array(converted_accents)
 
 
-def convert_mora_jp_to_en(mora):
-    phonemes, _, syllable_boundary = mora2phon(mora, [0] * len(mora))
+def convert_mora_jp_to_en(mora: list[str] | NDArray[Any]) -> list[str]:
+    phonemes, _, syllable_boundary = mora2phon(mora, [0] * len(mora))  # type: ignore
     temp_en_mora = ""
     en_moras = []
 
@@ -472,7 +499,11 @@ def convert_mora_jp_to_en(mora):
     return en_moras
 
 
-def plot_attention(attention, xs=None, ys=None):
+def plot_attention(
+    attention: torch.Tensor,
+    xs: list[str] | None = None,
+    ys: list[str] | None = None,
+) -> Any:
     try:
         import matplotlib.pyplot as plt
         import matplotlib.ticker as ticker
@@ -501,18 +532,18 @@ def plot_attention(attention, xs=None, ys=None):
 
 
 def plot_batch_attention(
-    inputs,
-    logits,
-    ap_lengths,
-    attentions,
-    feature_set,
-    plot_targets=None,
-    tensorboard_writer=None,
-    phase=None,
-    epoch=None,
-    script_ids=None,
-    accent_phrase_boundary_label=2,
-):
+    inputs: dict[str, Any],
+    logits: torch.Tensor,
+    ap_lengths: list[int],
+    attentions: torch.Tensor,
+    feature_set: FeatureSet,
+    plot_targets: list[int] | None = None,
+    tensorboard_writer: Any | None = None,
+    phase: str | None = None,
+    epoch: int | None = None,
+    script_ids: list[Any] | None = None,
+    accent_phrase_boundary_label: int = 2,
+) -> None:
     """Plot attentions in a batch"""
     # parse features
     moras = inputs["embedding_features"]["mora"]
@@ -545,13 +576,18 @@ def plot_batch_attention(
 
         fig = plot_attention(attention, xs=xs, ys=ys)
 
-        if tensorboard_writer:
+        if tensorboard_writer and script_ids is not None:
             tensorboard_writer.add_figure(
                 f"{phase}/attention/{script_ids[index]}", fig, epoch
             )
 
 
-def convert_readable_labels(predicts, targets, masks, script_ids):
+def convert_readable_labels(
+    predicts: list[Any],
+    targets: list[Any],
+    masks: list[Any],
+    script_ids: list[Any],
+) -> dict[Any, Any]:
     """Convert logits to readable label"""
     logs = {}
 
@@ -568,7 +604,7 @@ def convert_readable_labels(predicts, targets, masks, script_ids):
     return logs
 
 
-def group_by_script_id(logs):
+def group_by_script_id(logs: dict[str, Any]) -> dict[str, Any]:
     _logs = {}
 
     for task, scripts in logs.items():
@@ -581,7 +617,7 @@ def group_by_script_id(logs):
     return _logs
 
 
-def _make_task_group_variation(tasks, min_num=2):
+def _make_task_group_variation(tasks: list[str], min_num: int = 2) -> list[list[str]]:
     groups = []
     target_size = len(tasks)
     while target_size - min_num >= 0:
@@ -592,7 +628,9 @@ def _make_task_group_variation(tasks, min_num=2):
     return groups
 
 
-def _calculate_multiple_task_scores(tasks, logs):
+def _calculate_multiple_task_scores(
+    tasks: list[str], logs: dict[str, Any]
+) -> dict[str, Any]:
     task_groups = _make_task_group_variation(tasks)
     multiple_task_scores = {}
 
@@ -618,14 +656,14 @@ def _calculate_multiple_task_scores(tasks, logs):
 
 
 def log_scores(
-    phase,
-    epoch,
-    tasks,
-    metrics,
-    logs=None,
-    loss=None,
-    tensorboard_writer=None,
-):
+    phase: str,
+    epoch: int,
+    tasks: list[str],
+    metrics: MultiTaskMetrics,
+    logs: dict[str, Any] | None = None,
+    loss: dict[str, Any] | None = None,
+    tensorboard_writer: Any | None = None,
+) -> None:
     """Log scores"""
 
     scores = metrics.compute()

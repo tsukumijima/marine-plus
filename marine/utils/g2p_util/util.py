@@ -202,7 +202,7 @@ PHON_TABLE = {
 SUPPORTED_MORA = set(PHON_TABLE.keys())
 
 
-def get_phoneme(mora, current_phonemes):
+def get_phoneme(mora: str, current_phonemes: list[str]) -> list[str]:
     """
     Convert mora(single or double Katakana characters) to Phoneme
     """

@@ -1,4 +1,9 @@
-def set_accent_status(accent):
+from typing import Literal
+
+
+def set_accent_status(
+    accent: int,
+) -> tuple[Literal[0, 1], int]:
     high = -1
     end_low = -1
 
@@ -19,7 +24,7 @@ def set_accent_status(accent):
     return high, end_low
 
 
-def represent_accent_high_low(index, high, end_low):
+def represent_accent_high_low(index: int, high: int, end_low: int) -> Literal[0, 1]:
     """
     Represent the accent by a current status of the mora
     - types:
@@ -37,7 +42,9 @@ def represent_accent_high_low(index, high, end_low):
     return accent
 
 
-def represent_longvowel_accent_high_low(index, high, end_low):
+def represent_longvowel_accent_high_low(
+    index: int, high: int, end_low: int
+) -> Literal[0, 1]:
     # Init accent into flat accent
     accent = 0
 
@@ -48,7 +55,7 @@ def represent_longvowel_accent_high_low(index, high, end_low):
     return accent
 
 
-def represent_accent_binary(index, high, end_low):
+def represent_accent_binary(index: int, high: int, end_low: int) -> Literal[0, 1]:
     """
     Represent the accent by a current status of the mora
     - types:
@@ -62,6 +69,8 @@ def represent_accent_binary(index, high, end_low):
     return accent
 
 
-def represent_longvowel_accent_binary(index, high, end_low):
+def represent_longvowel_accent_binary(
+    index: int, high: int, end_low: int
+) -> Literal[0, 1]:
     # Init accent into a flat accent, and make previous accent to high if match it
     return 1 if index == end_low else 0

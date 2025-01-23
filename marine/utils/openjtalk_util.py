@@ -1,10 +1,12 @@
 import difflib
 import re
 import warnings
+from typing import Any, cast
 
 import numpy as np
 import pykakasi
 from marine.data.feature.feature_table import RAW_FEATURE_KEYS
+from pyopenjtalk import NJDFeature
 
 kakasi = pykakasi.kakasi()
 BOIN_DICT = {"a": "ア", "i": "イ", "u": "ウ", "e": "エ", "o": "オ", "n": "ン"}
@@ -40,7 +42,9 @@ PUNCTUATION_FULL_TO_HALF_TABLE = {
 PUNCTUATION_FULL_TO_HALF_TRANS = str.maketrans(PUNCTUATION_FULL_TO_HALF_TABLE)
 
 
-def convert_open_jtalk_node_to_feature(nodes):
+def convert_open_jtalk_node_to_feature(
+    nodes: list[NJDFeature],
+) -> list[dict[str, Any]]:
     features = []
     raw_feature_keys = RAW_FEATURE_KEYS["open-jtalk"]
     pre_pron = None
@@ -49,10 +53,10 @@ def convert_open_jtalk_node_to_feature(nodes):
         # parse feature
         node_feature = {}
         for feature_key in raw_feature_keys:
-            jtalk_key = OPEN_JTALK_FEATURE_RENAME_TABLE[feature_key]
+            jtalk_key = cast(str, OPEN_JTALK_FEATURE_RENAME_TABLE[feature_key])
 
             if feature_key == "pos":
-                value = ":".join([node[_k] for _k in jtalk_key])
+                value = ":".join([node[_k] for _k in cast(list[str], jtalk_key)])
             elif feature_key == "accent_type":
                 value = int(node[jtalk_key])
             elif feature_key == "accent_con_type":
@@ -95,7 +99,9 @@ def convert_open_jtalk_node_to_feature(nodes):
     return features
 
 
-def convert_njd_feature_to_marine_feature(njd_features):
+def convert_njd_feature_to_marine_feature(
+    njd_features: list[NJDFeature],
+) -> list[dict[str, Any]]:
     marine_features = []
 
     raw_feature_keys = RAW_FEATURE_KEYS["open-jtalk"]
@@ -116,7 +122,9 @@ def convert_njd_feature_to_marine_feature(njd_features):
             elif feature_key == "pron":
                 value = njd_feature["pron"].replace("’", "").replace("ヲ", "オ")
             else:
-                value = njd_feature[OPEN_JTALK_FEATURE_RENAME_TABLE[feature_key]]
+                value = njd_feature[
+                    cast(str, OPEN_JTALK_FEATURE_RENAME_TABLE[feature_key])
+                ]
             marine_feature[feature_key] = value
 
         if marine_feature["surface"] == "・":
@@ -135,12 +143,12 @@ def convert_njd_feature_to_marine_feature(njd_features):
 
 
 def convert_open_jtalk_format_label(
-    labels,
-    morph_boundaries,
-    accent_nucleus_label=1,
-    accent_phrase_boundary_label=1,
-    morph_boundary_label=1,
-):
+    labels: dict[str, Any],
+    morph_boundaries: list[int],
+    accent_nucleus_label: int = 1,
+    accent_phrase_boundary_label: int = 1,
+    morph_boundary_label: int = 1,
+) -> dict[str, Any]:
     assert "accent_status" in labels.keys(), "`accent_status` is missing in labels"
     assert (
         "accent_phrase_boundary" in labels.keys()
@@ -217,7 +225,7 @@ def convert_open_jtalk_format_label(
     }
 
 
-def trans_hyphen2katakana(text):
+def trans_hyphen2katakana(text: str) -> str:
     """
     伸ばし棒をカタカナに変換
     例：きょー→きょお
@@ -231,7 +239,7 @@ def trans_hyphen2katakana(text):
     return text
 
 
-def replace_hyphen(text, hyphen_string_list):
+def replace_hyphen(text: str, hyphen_string_list: list[str]) -> str:
     for _str in hyphen_string_list:
         if "[" in _str or "]" in _str:
             result = kakasi.convert(_str.replace("[", "").replace("]", ""))[0]
@@ -245,7 +253,7 @@ def replace_hyphen(text, hyphen_string_list):
     return text
 
 
-def print_diff_hl(ground_truth, target):
+def print_diff_hl(ground_truth: str, target: str) -> None:
     """
     文字列の差異をハイライト表示する
     """

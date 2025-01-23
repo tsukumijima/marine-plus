@@ -1,31 +1,37 @@
+from typing import Mapping, Sequence
+
 import torch
 from marine.modules.attention import BahdanauAttention, ZoneOutCell
 from marine.utils.util import get_ap_length
-from torch import nn
+from torch import Tensor, nn
 
 
 class AttentionBasedLSTMDecoder(nn.Module):
     def __init__(
         self,
-        input_size=512,
-        output_size=20,
-        hidden_size=512,
-        num_layers=2,
-        attention_hidden_size=128,
-        decoder_embedding_size=256,
-        zoneout=0.1,
-        prev_task_dropout=0.5,
-        decoder_prev_out_dropout=0.5,
-        prev_task_embedding_label_list=None,
-        prev_task_embedding_label_size=None,
-        prev_task_embedding_size=None,
-        padding_idx=0,
-    ):
+        input_size: int = 512,
+        output_size: int = 20,
+        hidden_size: int = 512,
+        num_layers: int = 2,
+        attention_hidden_size: int = 128,
+        decoder_embedding_size: int = 256,
+        zoneout: float = 0.1,
+        prev_task_dropout: float = 0.5,
+        decoder_prev_out_dropout: float = 0.5,
+        prev_task_embedding_label_list: Sequence[str] | None = None,
+        prev_task_embedding_label_size: Mapping[str, int] | None = None,
+        prev_task_embedding_size: Mapping[str, int] | None = None,
+        padding_idx: int = 0,
+    ) -> None:
         super().__init__()
         # NOTE: output_size must includes size for [PAD]
         self.output_size = output_size
 
-        if prev_task_embedding_label_size:
+        if (
+            prev_task_embedding_label_size
+            and prev_task_embedding_label_list
+            and prev_task_embedding_size
+        ):
             embeddings = {}
             dropouts = {}
             for key in prev_task_embedding_label_list:
@@ -77,11 +83,17 @@ class AttentionBasedLSTMDecoder(nn.Module):
         # out_dim: output-size + [PAD]
         self.projection = nn.Linear(project_size, self.output_size, bias=False)
 
-    def _zero_state(self, hs):
+    def _zero_state(self, hs: Tensor) -> Tensor:
         init_hs = hs.new_zeros(hs.size(0), self.lstm[0].hidden_size)
         return init_hs
 
-    def forward(self, encoder_outputs, mask, prev_task_outputs, decoder_targets=None):
+    def forward(
+        self,
+        encoder_outputs: Tensor,
+        mask: Tensor,
+        prev_task_outputs: dict[str, Tensor],
+        decoder_targets: Tensor | None = None,
+    ) -> tuple[Tensor, Tensor, list[int]]:
         is_inference = decoder_targets is None
         ap_lengths = get_ap_length(prev_task_outputs["accent_phrase_boundary"], mask)
 
@@ -118,7 +130,8 @@ class AttentionBasedLSTMDecoder(nn.Module):
 
         self.attention.reset()
 
-        outs, att_ws = [], []
+        outs: list[Tensor] = []
+        att_ws: list[Tensor] = []
         t = 0
 
         while True:
@@ -158,7 +171,7 @@ class AttentionBasedLSTMDecoder(nn.Module):
             if t >= max_decoder_time_steps:
                 break
 
-        outs = torch.cat(outs, dim=1)  # (B, Lmax, out_dim)
-        att_ws = torch.stack(att_ws, dim=1)  # (B, Lmax, Tmax)
+        outs_tensor = torch.cat(outs, dim=1)  # (B, Lmax, out_dim)
+        att_ws_tensor = torch.stack(att_ws, dim=1)  # (B, Lmax, Tmax)
 
-        return outs, att_ws, ap_lengths
+        return outs_tensor, att_ws_tensor, ap_lengths

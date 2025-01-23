@@ -1,11 +1,22 @@
 from logging import getLogger
+from typing import Any
 
 from hydra.utils import instantiate
+from marine.data.feature.feature_set import FeatureSet
+from omegaconf import DictConfig
+from torch import nn
+from torch.optim import Optimizer
 
 logger = getLogger(__name__)
 
 
-def init_model(tasks, config, feature_set, device, is_train=False):
+def init_model(
+    tasks: list[str],
+    config: DictConfig,
+    feature_set: FeatureSet,
+    device: str,
+    is_train: bool = False,
+) -> nn.Module | tuple[nn.Module, dict[str, nn.Module], Optimizer, Any]:
     if is_train:
         criterions = {}
         optimizer = None

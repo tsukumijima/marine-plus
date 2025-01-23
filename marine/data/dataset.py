@@ -1,14 +1,16 @@
+from typing import Any
+
 from torch.utils.data import Dataset
 
 
-class AccentDataset(Dataset):
-    def __init__(self, data):
+class AccentDataset(Dataset[dict[str, Any]]):
+    def __init__(self, data: dict[str, Any]):
         self.data = data
 
     def __len__(self):
         return len(self.data["labels"])
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> dict[str, Any]:
         item = {
             "features": self.data["features"][index],
             "labels": self.data["labels"][index],

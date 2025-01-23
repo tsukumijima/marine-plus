@@ -2,6 +2,7 @@ import re
 import sys
 import warnings
 from pathlib import Path
+from typing import Any, Literal, Mapping, cast
 
 import torch
 from marine.data.feature.feature_set import FeatureSet
@@ -21,7 +22,8 @@ from marine.utils.util import (
     expand_word_label_to_mora,
     sequence_mask,
 )
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
+from torch import Tensor, nn
 from torch.nn.utils.rnn import pad_sequence
 
 if sys.version_info >= (3, 9):
@@ -29,25 +31,38 @@ if sys.version_info >= (3, 9):
 else:
     import importlib_resources
 
-BASE_DIR = Path(importlib_resources.files("marine"))
+BASE_DIR = Path(str(importlib_resources.files("marine")))
 DEFAULT_POSTPROCESS_VOCAB_DIR = BASE_DIR / "dict"
 
 
 class Predictor:
     """Interface for inference of accent model."""
 
+    model: nn.Module
+    model_dir: Path
+    config: DictConfig
+    tasks: list[str]
+    feature_set: FeatureSet
+    collate_fn: Padsequence
+    device: str
+    postprocess_vocab_dir: Path
+    postprocess_vocab: dict[str, Any] | None
+    postprocess_targets: dict[str, re.Pattern[str] | None] | None
+
     def __init__(
         self,
-        model_dir=None,
-        version=None,
-        postprocess_vocab_dir=None,
-        device="cpu",
-        skip_post_process=False,
-    ):
+        model_dir: str | Path | None = None,
+        version: str | None = None,
+        postprocess_vocab_dir: str | Path | None = None,
+        device: str = "cpu",
+        skip_post_process: bool = False,
+    ) -> None:
         self.setup_model(model_dir, version, device)
         self.setup_postprocess_vocab(postprocess_vocab_dir, skip_post_process)
 
-    def setup_model(self, model_dir, version, device):
+    def setup_model(
+        self, model_dir: str | Path | None, version: str | None, device: str
+    ) -> None:
         if model_dir is None:
             if version is None:
                 self.model_dir = Path(retrieve_pretrained_model())
@@ -61,8 +76,8 @@ class Predictor:
         ), f"Model directory doesn't exists: {self.model_dir.as_posix()}"
 
         self.device = device
-        self.config = OmegaConf.load(self.model_dir / "config.yaml")
-        self.tasks = self.config.data.output_keys
+        self.config = cast(DictConfig, OmegaConf.load(self.model_dir / "config.yaml"))
+        self.tasks = cast(list[str], self.config.data.output_keys)
 
         if self.config.model.vocab_path is None:
             self.config.model.vocab_path = str(self.model_dir / "vocab.pkl")
@@ -72,7 +87,10 @@ class Predictor:
             feature_table_key=self.config.data.feature_table_key,
             feature_keys=self.config.data.input_keys,
         )
-        self.model = init_model(self.tasks, self.config, self.feature_set, self.device)
+        self.model = cast(
+            nn.Module,
+            init_model(self.tasks, self.config, self.feature_set, self.device),
+        )
         self._load_states()
 
         self.collate_fn = Padsequence(
@@ -83,7 +101,7 @@ class Predictor:
             is_inference=True,
         )
 
-    def _load_states(self):
+    def _load_states(self) -> None:
         states = torch.load(
             self.model_dir / "model.pth", map_location=self.device, weights_only=False
         )
@@ -91,7 +109,9 @@ class Predictor:
         self.model.to(self.device)
         self.model.eval()
 
-    def setup_postprocess_vocab(self, postprocess_vocab_dir, skip_post_process):
+    def setup_postprocess_vocab(
+        self, postprocess_vocab_dir: str | Path | None, skip_post_process: bool
+    ) -> None:
         # Setup for vocab for post-process
         if postprocess_vocab_dir is None:
             self.postprocess_vocab_dir = DEFAULT_POSTPROCESS_VOCAB_DIR
@@ -104,7 +124,7 @@ class Predictor:
         ), f"Vocab directory doesn't exists: {self.postprocess_vocab_dir.as_posix()}"
 
         if skip_post_process:
-            self.postprocess_vocab, self.epostprocess_targets = None, None
+            self.postprocess_vocab, self.postprocess_targets = None, None
         else:
             self.postprocess_vocab = load_postprocess_vocab(
                 self.postprocess_vocab_dir, self.tasks
@@ -117,11 +137,11 @@ class Predictor:
     @torch.no_grad()
     def predict(
         self,
-        sentences,
-        accent_represent_mode="binary",
-        annotates=None,
-        require_open_jtalk_format=False,
-    ):
+        sentences: list[list[dict[str, Any]]],
+        accent_represent_mode: Literal["binary", "high_low"] = "binary",
+        annotates: dict[str, Any] | None = None,
+        require_open_jtalk_format: bool = False,
+    ) -> dict[str, list[Any]]:
         if accent_represent_mode not in ["binary", "high_low"]:
             raise NotImplementedError(
                 (
@@ -133,14 +153,14 @@ class Predictor:
         if require_open_jtalk_format and accent_represent_mode != "binary":
             warnings.warn(
                 (
-                    "If you want the format for OpenJTalk,",
-                    "`accent_represent_mode` will be fixed as `binary`",
+                    "If you want the format for OpenJTalk,"
+                    "`accent_represent_mode` will be fixed as `binary`"
                 ),
                 stacklevel=2,
             )
             accent_represent_mode = "binary"
 
-        result = {}
+        result: dict[str, list[Any]] = {}
 
         inputs, morph_boundary = self.extract_feature(sentences)
         result["mora"] = self.convert_to_mora(inputs)
@@ -189,11 +209,11 @@ class Predictor:
                     accent_represent_mode=accent_represent_mode,
                 )
 
-                if self.postprocess_vocab:
+                if self.postprocess_vocab and self.postprocess_targets:
                     target = self.postprocess_targets[task]
                     vocab = self.postprocess_vocab[task]
 
-                    if vocab:
+                    if vocab and target:
                         for index, (nodes, label, mora, boundary) in enumerate(
                             zip(sentences, real_labels, result["mora"], morph_boundary)
                         ):
@@ -220,7 +240,10 @@ class Predictor:
 
         return result
 
-    def extract_feature(self, sentences):
+    def extract_feature(
+        self,
+        sentences: list[list[dict[str, Any]]],
+    ) -> tuple[dict[str, Any], list[Any]]:
         batch = [
             {
                 "features": self.feature_set.convert_nodes_to_feature(nodes),
@@ -243,7 +266,10 @@ class Predictor:
 
         return inputs, morph_boundary
 
-    def convert_to_mora(self, inputs):
+    def convert_to_mora(
+        self,
+        inputs: dict[str, Any],
+    ) -> list[list[str]]:
         return [
             list(self.feature_set.convert_id_to_feature("mora", mora[mask].tolist()))
             for mora, mask in zip(inputs["embedding_features"]["mora"], inputs["mask"])
@@ -251,15 +277,15 @@ class Predictor:
 
     def convert_to_label(
         self,
-        task,
-        outputs,
-        mora_masks,
-        moras=None,
-        ap_lengths=None,
-        ap_outputs=None,
-        prev_task_outputs=None,
-        accent_represent_mode="binary",
-    ):
+        task: str,
+        outputs: Tensor,
+        mora_masks: Tensor,
+        moras: list[list[str]] | None = None,
+        ap_lengths: list[int] | None = None,
+        ap_outputs: Tensor | None = None,
+        prev_task_outputs: dict[str, Tensor] | None = None,
+        accent_represent_mode: Literal["binary", "high_low"] = "binary",
+    ) -> list[list[int]]:
         predicts = []
 
         for index, (mora_mask, padded_predict) in enumerate(zip(mora_masks, outputs)):
@@ -270,7 +296,7 @@ class Predictor:
                 if task == "accent_status":
                     # when the decoder for AN estimates AP-based label,
                     # convert AP-based label to mora-mased label
-                    if ap_lengths is not None:
+                    if ap_lengths is not None and ap_outputs is not None:
                         predict = padded_predict[: ap_lengths[index]]
                         ap_output = ap_outputs[index][mora_mask]
                         predict = torch.argmax(predict, dim=1)
@@ -278,13 +304,16 @@ class Predictor:
                             predict,
                             ap_output,
                             mode=accent_represent_mode,
-                            mora=moras[index],
+                            mora=moras[index] if moras else None,
                         )
                     # when the decoder for AN estimates mora-based label
                     # and `accent_represent_mode` is different
                     # between configuration for inference and model,
                     # convert the label to follow the inference setting
-                    elif self.config.data.represent_mode != accent_represent_mode:
+                    elif (
+                        self.config.data.represent_mode != accent_represent_mode
+                        and prev_task_outputs is not None
+                    ):
                         predict = padded_predict[mora_mask]
                         accent_phrase_boundary = prev_task_outputs[
                             "accent_phrase_boundary"
@@ -293,7 +322,7 @@ class Predictor:
                         predict = convert_label_by_accent_representation_model(
                             predict,
                             accent_phrase_boundary,
-                            moras[index],
+                            moras[index] if moras else [],
                             current_accent_represent_mode=self.config.data.represent_mode,
                             target_accent_represent_mode=accent_represent_mode,
                         )
@@ -308,11 +337,16 @@ class Predictor:
                     # convert 0-based label
                     predict = predict - 1
 
-            predicts.append((predict).tolist())
+            predicts.append(predict.tolist())
 
         return predicts
 
-    def pad_annotate_label(self, annotates, mora, morph_boundary):
+    def pad_annotate_label(
+        self,
+        annotates: dict[str, Any],
+        mora: list[list[str]],
+        morph_boundary: list[Any],
+    ) -> Mapping[str, Tensor]:
         for key in annotates.keys():
             token_type = annotates[key]["token_type"]
             annotate = annotates[key]["labels"]
@@ -334,6 +368,6 @@ class Predictor:
                     )
                 )
 
-            annotates[key] = pad_sequence(annotate, batch_first=True).to(self.device)
+            annotates[key] = pad_sequence(annotate, batch_first=True).to(self.device)  # type: ignore
 
         return annotates

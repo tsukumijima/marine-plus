@@ -1,3 +1,5 @@
+from typing import Any, Literal
+
 import torch
 from marine.utils.util import convert_ap_based_accent_to_mora_based_accent
 from torchmetrics import F1Score, Metric, MetricCollection
@@ -6,14 +8,16 @@ from torchmetrics import F1Score, Metric, MetricCollection
 class SentenceLevelAccuracy(Metric):
     """Metrics to calculate sentence level accuray."""
 
-    full_state_update: bool = True
+    full_state_update = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.add_state("correct", default=torch.tensor(0), dist_reduce_fx="sum")
         self.add_state("total", default=torch.tensor(0), dist_reduce_fx="sum")
 
-    def update(self, preds: torch.Tensor, targets: torch.Tensor, masks: torch.Tensor):
+    def update(
+        self, preds: torch.Tensor, targets: torch.Tensor, masks: torch.Tensor
+    ) -> None:
         """Update variables for accuracy."""
 
         # preds: (B, T), target: (B, T), mask: (B, T)
@@ -28,7 +32,7 @@ class SentenceLevelAccuracy(Metric):
         self.correct += torch.sum(sequence_level_matchs)
         self.total += sequence_level_matchs.numel()  # == batch size
 
-    def compute(self):
+    def compute(self) -> torch.Tensor:
         """Compute accuracy using variables."""
         return self.correct.float() / self.total
 
@@ -38,16 +42,18 @@ class MultiTaskMetrics(object):
 
     def __init__(
         self,
-        phase,
-        task_label_sizes,
-        average="macro",
-        accent_represent_mode="binary",
-        require_ap_level_f1_score=False,
-        device="cpu",
-    ):
+        phase: Literal["train", "val", "test"],
+        task_label_sizes: dict[str, int],
+        average: Literal["micro", "macro", "weighted", "none"] = "macro",
+        accent_represent_mode: Literal["binary", "high_low"] = "binary",
+        require_ap_level_f1_score: bool = False,
+        device: Literal["cpu", "cuda"] = "cpu",
+    ) -> None:
         self.phase = phase
         self.tasks = task_label_sizes.keys()
-        self.accent_represent_mode = accent_represent_mode
+        self.accent_represent_mode: Literal["binary", "high_low"] = (
+            accent_represent_mode
+        )
         self.require_ap_level_f1_score = require_ap_level_f1_score
         self.device = device
 
@@ -79,7 +85,15 @@ class MultiTaskMetrics(object):
             for task_name, task_label_size in task_label_sizes.items()
         }
 
-    def update(self, task, preds, targets, masks, padding_idx=0, **kwargs):
+    def update(
+        self,
+        task: str,
+        preds: torch.Tensor,
+        targets: torch.Tensor,
+        masks: torch.Tensor,
+        padding_idx: int = 0,
+        **kwargs: Any,
+    ) -> None:
         """Update variables for accuracy."""
         assert task in self.tasks, f"Not initialized task: {task} not in {self.tasks}"
 
@@ -104,7 +118,7 @@ class MultiTaskMetrics(object):
 
         self.metrics[task]["sentence_level_accuracy"].update(preds, targets, masks)
 
-    def compute(self):
+    def compute(self) -> dict[str, dict[str, float]]:
         """Compute accuracy using variables."""
         return {
             task_name: {
@@ -114,7 +128,7 @@ class MultiTaskMetrics(object):
             for task_name in self.tasks
         }
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset all variables in metrics."""
         for task_name in self.tasks:
             for metrics in self.metrics[task_name].values():
@@ -122,13 +136,13 @@ class MultiTaskMetrics(object):
 
     def _convert_ap_seq_to_mora_seq(
         self,
-        preds,
-        targets,
-        ap_seq_masks,
-        predicted_accent_phrase_boundaries,
-        target_accent_phrase_boundaries,
-        mora_seq_masks,
-    ):
+        preds: torch.Tensor,
+        targets: torch.Tensor,
+        ap_seq_masks: torch.Tensor,
+        predicted_accent_phrase_boundaries: torch.Tensor,
+        target_accent_phrase_boundaries: torch.Tensor,
+        mora_seq_masks: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Convert accent phrase-based accent status sequence to mora-based."""
         mora_preds = convert_ap_based_accent_to_mora_based_accent(
             preds,

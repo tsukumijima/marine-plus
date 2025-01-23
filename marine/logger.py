@@ -7,7 +7,9 @@ from os.path import dirname
 format = "[%(asctime)s][%(name)s:%(module)s][%(levelname)s] - %(message)s"
 
 
-def getLogger(verbose=0, filename=None, name="marine"):
+def getLogger(
+    verbose: int = 0, filename: str | None = None, name: str = "marine"
+) -> logging.Logger:
     handlers = []
 
     stream_handler = logging.StreamHandler()

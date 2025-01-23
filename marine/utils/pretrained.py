@@ -25,7 +25,7 @@ class _TqdmUpTo(tqdm):  # type: ignore
         return self.update(b * bsize - self.n)
 
 
-def retrieve_pretrained_model(version=None):
+def retrieve_pretrained_model(version: str | None = None) -> Path:
     """Retrieve pretrained model from local cache or download from GitHub.
     Args:
         version (str): Version of pretrained model.

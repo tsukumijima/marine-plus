@@ -1,8 +1,10 @@
 from logging import getLogger
 from pathlib import Path
+from typing import Any
 
 from hydra.utils import to_absolute_path
 from joblib import load
+from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 
 from .dataset import AccentDataset
@@ -11,7 +13,9 @@ from .pad import Padsequence
 logger = getLogger(__name__)
 
 
-def load_dataset(config, phases=None):
+def load_dataset(
+    config: DictConfig, phases: list[str] | None = None
+) -> dict[str, DataLoader[dict[str, Any]]]:
     dataloader = {}
 
     data_dir = Path(to_absolute_path(config.data.data_dir))

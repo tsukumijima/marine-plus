@@ -1,5 +1,6 @@
 from logging import getLogger
 from pathlib import Path
+from typing import Any, cast
 
 import joblib
 import numpy as np
@@ -9,6 +10,7 @@ from marine.data.feature.feature_table import (
     parse_accent_con_type,
 )
 from marine.utils.g2p_util import pron2mora
+from numpy.typing import NDArray
 
 logger = getLogger(__name__)
 
@@ -20,20 +22,13 @@ class FeatureSet(object):
 
     def __init__(
         self,
-        vocab_path,
-        feature_table_key="unidic-csj",
-        feature_keys=None,
-        pad_token="[PAD]",
-        unk_token="[UNK]",
-    ):
-        if isinstance(vocab_path, Path):
-            self.vocab_path = vocab_path
-        elif isinstance(vocab_path, str):
-            self.vocab_path = Path(vocab_path)
-        else:
-            raise ValueError(
-                f"Invalid type for vocab_path: {type(vocab_path)} (must be Path or str)"
-            )
+        vocab_path: str | Path,
+        feature_table_key: str = "unidic-csj",
+        feature_keys: list[str] | None = None,
+        pad_token: str = "[PAD]",
+        unk_token: str = "[UNK]",
+    ) -> None:
+        self.vocab_path = Path(vocab_path)
 
         self.pad_token = pad_token
         self.unk_token = unk_token
@@ -45,12 +40,12 @@ class FeatureSet(object):
         else:
             self.feature_keys = list(self.feature_table.keys())
 
-        self.feature_to_id = {key: [] for key in self.feature_keys}
-        self.id_to_feature = {key: [] for key in self.feature_keys}
+        self.feature_to_id = {key: {} for key in self.feature_keys}
+        self.id_to_feature = {key: {} for key in self.feature_keys}
 
         self.init_feature_set()
 
-    def _load_vocab(self):
+    def _load_vocab(self) -> list[str]:
         if not self.vocab_path.exists():
             logger.error(f"Vocab has not found : {self.vocab_path}")
             raise FileNotFoundError(f"Vocab has not found : {self.vocab_path}")
@@ -60,7 +55,7 @@ class FeatureSet(object):
 
         return vocab
 
-    def init_feature_set(self):
+    def init_feature_set(self) -> None:
         self._load_vocab()
 
         for key in self.feature_keys:
@@ -71,7 +66,7 @@ class FeatureSet(object):
                     raise ValueError(
                         f"Feature key must be one of {self.feature_table.keys()}"
                     )
-                feature_set = self.default_tokens + self.feature_table[key]
+                feature_set = self.default_tokens + (self.feature_table[key] or [])
 
             feature_to_id = {
                 feature_value: index for index, feature_value in enumerate(feature_set)
@@ -82,7 +77,9 @@ class FeatureSet(object):
             self.feature_to_id[key] = feature_to_id
             self.id_to_feature[key] = id_to_feature
 
-    def convert_feature_to_id(self, feature_key, features):
+    def convert_feature_to_id(
+        self, feature_key: str, features: list[str | int]
+    ) -> NDArray[np.uint8]:
         if feature_key not in self.feature_to_id:
             raise ValueError(
                 f"Not initialized feature key: the key must be one of {self.feature_to_id}"
@@ -98,7 +95,7 @@ class FeatureSet(object):
             dtype=np.uint8,
         )
 
-    def convert_id_to_feature(self, feature_key, ids):
+    def convert_id_to_feature(self, feature_key: str, ids: list[int]) -> NDArray[Any]:
         if feature_key not in self.id_to_feature:
             raise ValueError(
                 f"Not initialized feature key: the key must be one of {self.id_to_feature}"
@@ -111,7 +108,9 @@ class FeatureSet(object):
             ]
         )
 
-    def convert_nodes_to_feature(self, nodes):
+    def convert_nodes_to_feature(
+        self, nodes: list[dict[str, Any]]
+    ) -> dict[str, NDArray[np.uint8]]:
         """
         Input: dict型のリスト
         example:
@@ -130,14 +129,18 @@ class FeatureSet(object):
         ]
         """
 
-        features = {key: np.array([], np.uint8) for key in self.feature_to_id}
+        features = {key: np.array([], dtype=np.uint8) for key in self.feature_to_id}
 
         # init morph boundary for inference
-        features["morph_boundary"] = np.array([], np.uint8)
+        features["morph_boundary"] = np.array([], dtype=np.uint8)
 
         for node in nodes:
             mora = self.convert_feature_to_id(
-                "mora", pron2mora(node["pron"]) if node["pron"] else [node["surface"]]
+                "mora",
+                cast(
+                    list[str | int],
+                    pron2mora(node["pron"]) if node["pron"] else [node["surface"]],
+                ),
             )
 
             morph_boundary = np.array([1] + ([0] * (len(mora) - 1)), dtype=np.uint8)
@@ -167,5 +170,5 @@ class FeatureSet(object):
 
         return features
 
-    def get_punctuation_ids(self):
+    def get_punctuation_ids(self) -> list[int]:
         return [self.feature_to_id["mora"][punctuation] for punctuation in PUNCTUATIONS]

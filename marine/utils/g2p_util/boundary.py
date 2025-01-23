@@ -1,7 +1,11 @@
+from typing import Literal, cast
+
 from .util import CONNECTABLE_MORA, HALF_PUNCTUATION
 
 
-def represent_syllable_boundary(index, moras, len_phonemes):
+def represent_syllable_boundary(
+    index: int, moras: list[str], len_phonemes: int
+) -> list[Literal[0, 1]]:
     """
     Represent syllable boundary by 2 types
     - types:
@@ -15,7 +19,7 @@ def represent_syllable_boundary(index, moras, len_phonemes):
     # Init the boundary into normal boundary
     # e.g., か -> [k, a] -> [0, 1]
     #       わ -> [wa] -> [1]
-    boundary = [0] * (len_phonemes - 1) + [1]
+    boundary = cast(list[Literal[0, 1]], [0] * (len_phonemes - 1) + [1])
 
     # remove syllable boundaray if next mora is connectable mora (i.e. ッ, ン)
     # e.g., [ ... "デ", "ン" ] -> [ ... [d0, e1], [N1] ] -> [ ... [d0, e0], [N1] ]

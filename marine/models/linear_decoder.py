@@ -1,19 +1,25 @@
-from torch import cat, nn
+from typing import Mapping, Sequence
+
+from torch import Tensor, cat, nn
 
 
 class LinearDecoder(nn.Module):
     def __init__(
         self,
-        input_size,
-        output_size,
-        prev_task_embedding_label_list=None,
-        prev_task_embedding_label_size=None,
-        prev_task_embedding_size=None,
-        prev_task_dropout=None,
-        padding_idx=0,
-    ):
+        input_size: int,
+        output_size: int,
+        prev_task_embedding_label_list: Sequence[str] | None = None,
+        prev_task_embedding_label_size: Mapping[str, int] | None = None,
+        prev_task_embedding_size: Mapping[str, int] | None = None,
+        prev_task_dropout: float | None = None,
+        padding_idx: int = 0,
+    ) -> None:
         super().__init__()
-        if prev_task_embedding_label_size:
+        if (
+            prev_task_embedding_label_size
+            and prev_task_embedding_label_list
+            and prev_task_embedding_size
+        ):
             embeddings = {}
             dropouts = {}
 
@@ -42,8 +48,14 @@ class LinearDecoder(nn.Module):
         # NOTE: output_size must includes size for [PAD]
         self.linear = nn.Linear(input_size, output_size, bias=True)
 
-    def forward(self, logits, mask, prev_decoder_outputs=None, decoder_targets=None):
-        if self.prev_task_embedding is not None:
+    def forward(
+        self,
+        logits: Tensor,
+        mask: Tensor,
+        prev_decoder_outputs: dict[str, Tensor] | None = None,
+        decoder_targets: Tensor | None = None,
+    ) -> Tensor:
+        if self.prev_task_embedding is not None and prev_decoder_outputs is not None:
             prev_decoder_output_embs = []
 
             for key in self.prev_task_embedding.keys():

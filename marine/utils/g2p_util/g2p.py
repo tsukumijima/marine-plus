@@ -1,3 +1,7 @@
+from typing import Any, Callable, Literal
+
+from numpy.typing import NDArray
+
 from .accent import (
     represent_accent_binary,
     represent_accent_high_low,
@@ -15,7 +19,9 @@ from .util import (
     get_phoneme,
 )
 
-ACCENT_REPRESENT_FUNC_TABLE = {
+ACCENT_REPRESENT_FUNC_TABLE: dict[
+    Literal["binary", "high_low"], dict[str, Callable[[int, int, int], Literal[0, 1]]]
+] = {
     "binary": {
         "represent_accent": represent_accent_binary,
         "represent_longvowel_accent": represent_longvowel_accent_binary,
@@ -27,8 +33,12 @@ ACCENT_REPRESENT_FUNC_TABLE = {
 }
 
 
-def pron2mora(pron, accent=None, represent_mode="binary"):
-    moras = []
+def pron2mora(
+    pron: str | list[str] | NDArray[Any],
+    accent: int | None = None,
+    represent_mode: Literal["binary", "high_low"] = "binary",
+) -> list[str] | tuple[list[str], list[Literal[0, 1]]]:
+    moras: list[str] = []
     i = 0
 
     while i < len(pron):
@@ -60,7 +70,7 @@ def pron2mora(pron, accent=None, represent_mode="binary"):
 
         # init satus
         high, end_low = set_accent_status(accent)
-        represented_accents = []
+        represented_accents: list[Literal[0, 1]] = []
 
         for index, mora in enumerate(moras):
             # if currnet mora is long-vowel syombol, update last mora
@@ -80,24 +90,24 @@ def pron2mora(pron, accent=None, represent_mode="binary"):
     return moras
 
 
-def _is_longvowel(mora):
+def _is_longvowel(mora: str) -> bool:
     return mora == LONGVOWEL_CHARACTER
 
 
 # Consider whether the mora is long-vowel
 # and previous mora was not unaccneted mora for escapte excepted case
 # e.g., ンー = NN11, ッー = cl11
-def _is_prev_mora_not_unaccented_mora(index, moras):
+def _is_prev_mora_not_unaccented_mora(index: int, moras: list[str]) -> bool:
     return index > 0 and moras[index - 1] not in CONNECTABLE_MORA
 
 
 def mora2phon(
-    moras,
-    accents=None,
-    ignore_longvowel_accent=False,
-    use_punctuation=True,
-    punctuation_accent_label=7,
-):
+    moras: list[str],
+    accents: list[Literal[0, 1]] | None = None,
+    ignore_longvowel_accent: bool = False,
+    use_punctuation: bool = True,
+    punctuation_accent_label: int = 7,
+) -> list[str] | tuple[list[str], list[int], list[Literal[0, 1]]]:
     phonemes = []
 
     if accents is None:
@@ -150,14 +160,22 @@ def mora2phon(
         return phonemes, represented_accents, represented_boundaries
 
 
-def pron2phon(pron, accent=None, represent_mode="binary"):
+def pron2phon(
+    pron: str,
+    accent: int | None = None,
+    represent_mode: Literal["binary", "high_low"] = "binary",
+) -> list[str] | tuple[list[str], list[int], list[Literal[0, 1]]]:
     if represent_mode not in ACCENT_REPRESENT_FUNC_TABLE.keys():
         raise NotImplementedError(f"Not Implemented mode : {represent_mode}")
 
     if accent is None:
-        moras = pron2mora(pron, accent, represent_mode)
+        result = pron2mora(pron, accent, represent_mode)
+        assert isinstance(result, list)
+        moras = result
         accents = None
     else:
-        moras, accents = pron2mora(pron, accent, represent_mode)
+        result = pron2mora(pron, accent, represent_mode)
+        assert isinstance(result, tuple)
+        moras, accents = result
 
     return mora2phon(moras, accents)

@@ -1,8 +1,16 @@
-from torch import cat, nn
+from typing import Mapping
+
+from marine.data.feature.feature_set import FeatureSet
+from torch import Tensor, cat, nn
 
 
 class SimpleEmbedding(nn.Module):
-    def __init__(self, embeding_sizes, dropout, feature_set):
+    def __init__(
+        self,
+        embeding_sizes: Mapping[str, int],
+        dropout: float | None,
+        feature_set: FeatureSet,
+    ) -> None:
         super().__init__()
 
         # embeddings
@@ -22,7 +30,7 @@ class SimpleEmbedding(nn.Module):
         else:
             self.dropout = None
 
-    def forward(self, **kwargs):
+    def forward(self, **kwargs: dict[str, Tensor]) -> Tensor:
         # Embedding -> B * T * Embedding-size
         embs = [self.embeddings[key](kwargs[key]) for key in self.embeddings.keys()]
         embs = cat(embs, dim=2)

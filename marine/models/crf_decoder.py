@@ -1,8 +1,12 @@
+from typing import Mapping, Sequence, cast
+
 from marine.modules.crf_tagger import ConditionalRandomField
-from torch import cat, nn
+from torch import BoolTensor, Tensor, cat, nn
 
 
-def _broadcast_tags(predicted_tags, classfied):
+def _broadcast_tags(
+    predicted_tags: Sequence[Sequence[int]], classfied: Tensor
+) -> Tensor:
     class_probabilities = classfied * 0.0
 
     for i, instance_tags in enumerate(predicted_tags):
@@ -15,16 +19,20 @@ def _broadcast_tags(predicted_tags, classfied):
 class CRFDecoder(nn.Module):
     def __init__(
         self,
-        input_size,
-        output_size,
-        prev_task_embedding_label_list=None,
-        prev_task_embedding_label_size=None,
-        prev_task_embedding_size=None,
-        prev_task_dropout=None,
-        padding_idx=0,
-    ):
+        input_size: int,
+        output_size: int,
+        prev_task_embedding_label_list: Sequence[str] | None = None,
+        prev_task_embedding_label_size: Mapping[str, int] | None = None,
+        prev_task_embedding_size: Mapping[str, int] | None = None,
+        prev_task_dropout: float | None = None,
+        padding_idx: int = 0,
+    ) -> None:
         super().__init__()
-        if prev_task_embedding_label_size:
+        if (
+            prev_task_embedding_label_size
+            and prev_task_embedding_label_list
+            and prev_task_embedding_size
+        ):
             embeddings = {}
             dropouts = {}
             for key in prev_task_embedding_label_list:
@@ -53,8 +61,14 @@ class CRFDecoder(nn.Module):
         self.linear = nn.Linear(input_size, output_size)
         self.crf = ConditionalRandomField(output_size)
 
-    def forward(self, logits, mask, prev_decoder_outputs=None, decoder_targets=None):
-        if self.prev_task_embedding is not None:
+    def forward(
+        self,
+        logits: Tensor,
+        mask: Tensor,
+        prev_decoder_outputs: dict[str, Tensor] | None = None,
+        decoder_targets: dict[str, Tensor] | None = None,
+    ) -> tuple[Tensor, Tensor]:
+        if self.prev_task_embedding is not None and prev_decoder_outputs is not None:
             prev_decoder_output_embs = []
             for key in self.prev_task_embedding.keys():
                 prev_decoder_output = prev_decoder_outputs[key]
@@ -75,8 +89,8 @@ class CRFDecoder(nn.Module):
         linear_logits = self.linear(logits)
 
         # CRFs
-        best_paths = self.crf.viterbi_tags(linear_logits, mask)
+        best_paths = self.crf.viterbi_tags(linear_logits, cast(BoolTensor, mask))
         crf_logits = [x for x, _ in best_paths]
-        crf_logits = _broadcast_tags(crf_logits, linear_logits)
+        crf_logits = _broadcast_tags(cast(list[list[int]], crf_logits), linear_logits)
 
         return linear_logits, crf_logits

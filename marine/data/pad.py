@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
@@ -5,13 +7,13 @@ from torch.nn.utils.rnn import pad_sequence
 class Padsequence(object):
     def __init__(
         self,
-        input_keys,
-        input_length_key,
-        output_keys,
-        num_classes,
-        is_inference=False,
-        padding_idx=0,
-    ):
+        input_keys: list[str],
+        input_length_key: str,
+        output_keys: list[str],
+        num_classes: int,
+        is_inference: bool = False,
+        padding_idx: int = 0,
+    ) -> None:
         self.input_keys = input_keys
         self.input_length_key = input_length_key
         self.output_keys = output_keys
@@ -19,7 +21,7 @@ class Padsequence(object):
         self.is_inference = is_inference
         self.padding_idx = padding_idx
 
-    def pad_feature(self, inputs):
+    def pad_feature(self, inputs: list[dict[str, Any]]) -> dict[str, Any]:
         padded_feature = {}
 
         for key in self.input_keys:
@@ -41,7 +43,9 @@ class Padsequence(object):
 
         return padded_feature
 
-    def __call__(self, batch):
+    def __call__(
+        self, batch: list[dict[str, Any]]
+    ) -> tuple[dict[str, Any], dict[str, Any] | None, list[Any], list[Any] | None]:
         # sort by length
         if not self.is_inference:
             batch = sorted(
