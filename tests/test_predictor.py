@@ -1,5 +1,6 @@
 import pytest
 from marine.predict import Predictor
+from marine.types import MarineFeature
 
 
 @pytest.fixture
@@ -8,9 +9,9 @@ def predictor() -> Predictor:
     return Predictor()
 
 
-def test_predict(predictor):
+def test_predict(predictor: Predictor) -> None:
     """just to confirm predict() is working without errors."""
-    nodes = [
+    nodes: list[MarineFeature] = [
         {
             "surface": "水",
             "pron": "ミズ",
@@ -142,6 +143,8 @@ def test_predict(predictor):
             "chain_flag": 0,
         },
     ]
-    feature = predictor.predict([nodes])
 
-    print(feature)
+    print(predictor.predict([nodes], accent_represent_mode="binary"))
+    print(predictor.predict([nodes], accent_represent_mode="high_low"))
+    print(predictor.predict([nodes], accent_represent_mode="binary", require_open_jtalk_format=True))  # fmt: skip
+    print(predictor.predict([nodes], accent_represent_mode="high_low", require_open_jtalk_format=True))  # fmt: skip

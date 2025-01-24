@@ -2,7 +2,7 @@ import re
 import sys
 import warnings
 from pathlib import Path
-from typing import Any, Mapping, cast
+from typing import Any, cast
 
 import torch
 from marine.data.feature.feature_set import FeatureSet
@@ -13,7 +13,15 @@ from marine.models import (
     LinearDecoder,
     init_model,
 )
-from marine.types import AccentRepresentMode
+from marine.types import (
+    AccentRepresentMode,
+    BatchItem,
+    MarineFeature,
+    MarineLabel,
+    ModelInputs,
+    OpenJTalkFormatLabel,
+    PredictAnnotates,
+)
 from marine.utils.openjtalk_util import convert_open_jtalk_format_label
 from marine.utils.post_process import apply_postprocess_dict, load_postprocess_vocab
 from marine.utils.pretrained import retrieve_pretrained_model
@@ -138,11 +146,11 @@ class Predictor:
     @torch.no_grad()
     def predict(
         self,
-        sentences: list[list[dict[str, Any]]],
+        sentences: list[list[MarineFeature]],
         accent_represent_mode: AccentRepresentMode = "binary",
-        annotates: dict[str, Any] | None = None,
+        annotates: PredictAnnotates | None = None,
         require_open_jtalk_format: bool = False,
-    ) -> dict[str, list[Any]]:
+    ) -> MarineLabel | OpenJTalkFormatLabel:
         if accent_represent_mode not in ["binary", "high_low"]:
             raise NotImplementedError(
                 (
@@ -161,7 +169,7 @@ class Predictor:
             )
             accent_represent_mode = "binary"
 
-        result: dict[str, list[Any]] = {}
+        result = {}
 
         inputs, morph_boundary = self.extract_feature(sentences)
         result["mora"] = self.convert_to_mora(inputs)
@@ -236,20 +244,23 @@ class Predictor:
             result[task] = real_labels
             inputs["prev_decoder_outputs"][task] = prev_output
 
+        result = cast(MarineLabel, result)
+
         if require_open_jtalk_format:
-            result = convert_open_jtalk_format_label(result, morph_boundary)
+            return convert_open_jtalk_format_label(result, morph_boundary)
 
         return result
 
     def extract_feature(
         self,
-        sentences: list[list[dict[str, Any]]],
-    ) -> tuple[dict[str, Any], list[Any]]:
-        batch = [
-            {
-                "features": self.feature_set.convert_nodes_to_feature(nodes),
-                "labels": None,
-            }
+        sentences: list[list[MarineFeature]],
+    ) -> tuple[ModelInputs, list[Any]]:
+        batch: list[BatchItem] = [
+            BatchItem(
+                features=self.feature_set.convert_nodes_to_feature(nodes),
+                labels=None,
+                ids=None,
+            )
             for nodes in sentences
         ]
         inputs, _, morph_boundary, _ = self.collate_fn(batch)
@@ -258,18 +269,18 @@ class Predictor:
             key: inputs[key].to(self.device) for key in self.config.data.input_keys
         }
 
-        inputs = {
-            "embedding_features": embeddings,
-            "lengths": inputs["mora_length"].cpu(),
-            "mask": sequence_mask(inputs["mora_length"]).to(self.device),
-            "prev_decoder_outputs": {},
-        }
+        inputs_dict = ModelInputs(
+            embedding_features=embeddings,
+            lengths=inputs["mora_length"].cpu(),
+            mask=sequence_mask(inputs["mora_length"]).to(self.device),
+            prev_decoder_outputs={},
+        )
 
-        return inputs, morph_boundary
+        return inputs_dict, morph_boundary
 
     def convert_to_mora(
         self,
-        inputs: dict[str, Any],
+        inputs: ModelInputs,
     ) -> list[list[str]]:
         return [
             list(self.feature_set.convert_id_to_feature("mora", mora[mask].tolist()))
@@ -344,10 +355,11 @@ class Predictor:
 
     def pad_annotate_label(
         self,
-        annotates: dict[str, Any],
+        annotates: PredictAnnotates,
         mora: list[list[str]],
         morph_boundary: list[Any],
-    ) -> Mapping[str, Tensor]:
+    ) -> dict[str, Tensor]:
+        result: dict[str, Tensor] = {}
         for key in annotates.keys():
             token_type = annotates[key]["token_type"]
             annotate = annotates[key]["labels"]
@@ -369,6 +381,6 @@ class Predictor:
                     )
                 )
 
-            annotates[key] = pad_sequence(annotate, batch_first=True).to(self.device)  # type: ignore
+            result[key] = pad_sequence(annotate, batch_first=True).to(self.device)  # type: ignore
 
-        return annotates
+        return result

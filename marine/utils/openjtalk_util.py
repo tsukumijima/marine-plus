@@ -1,12 +1,13 @@
 import difflib
 import re
 import warnings
-from typing import Any, cast
+from typing import Literal, cast
 
 import numpy as np
 import pykakasi
 from marine.data.feature.feature_table import RAW_FEATURE_KEYS
-from pyopenjtalk import NJDFeature
+from marine.types import MarineFeature, MarineLabel, NJDFeature, OpenJTalkFormatLabel
+from numpy.typing import NDArray
 
 kakasi = pykakasi.kakasi()
 BOIN_DICT = {"a": "ア", "i": "イ", "u": "ウ", "e": "エ", "o": "オ", "n": "ン"}
@@ -42,10 +43,11 @@ PUNCTUATION_FULL_TO_HALF_TABLE = {
 PUNCTUATION_FULL_TO_HALF_TRANS = str.maketrans(PUNCTUATION_FULL_TO_HALF_TABLE)
 
 
+# TODO: pyopenjtalk から呼ばれている convert_njd_feature_to_marine_feature() とロジックが同じ (?) なので統合する
 def convert_open_jtalk_node_to_feature(
     nodes: list[NJDFeature],
-) -> list[dict[str, Any]]:
-    features = []
+) -> list[MarineFeature]:
+    features: list[MarineFeature] = []
     raw_feature_keys = RAW_FEATURE_KEYS["open-jtalk"]
     pre_pron = None
 
@@ -94,15 +96,15 @@ def convert_open_jtalk_node_to_feature(
             node_feature["surface"] = surface
             node_feature["pron"] = pron
 
-        features.append(node_feature)
+        features.append(cast(MarineFeature, node_feature))
 
     return features
 
 
 def convert_njd_feature_to_marine_feature(
     njd_features: list[NJDFeature],
-) -> list[dict[str, Any]]:
-    marine_features = []
+) -> list[MarineFeature]:
+    marine_features: list[MarineFeature] = []
 
     raw_feature_keys = RAW_FEATURE_KEYS["open-jtalk"]
     for njd_feature in njd_features:
@@ -137,18 +139,18 @@ def convert_njd_feature_to_marine_feature(
             marine_feature["surface"] = surface
             marine_feature["pron"] = pron
 
-        marine_features.append(marine_feature)
+        marine_features.append(cast(MarineFeature, marine_feature))
 
     return marine_features
 
 
 def convert_open_jtalk_format_label(
-    labels: dict[str, Any],
-    morph_boundaries: list[int],
+    labels: MarineLabel,
+    morph_boundaries: list[NDArray[np.uint8]],
     accent_nucleus_label: int = 1,
     accent_phrase_boundary_label: int = 1,
     morph_boundary_label: int = 1,
-) -> dict[str, Any]:
+) -> OpenJTalkFormatLabel:
     assert "accent_status" in labels.keys(), "`accent_status` is missing in labels"
     assert (
         "accent_phrase_boundary" in labels.keys()
@@ -172,10 +174,13 @@ def convert_open_jtalk_format_label(
         mora_accent_phrase_boundary, morph_boundary_indexes
     )
     # `chain_flag` in OpenJTalk represents the status whether the morph will be connected
-    morph_accent_phrase_boundary = [
-        0 if boundary[0] == accent_phrase_boundary_label else 1
-        for boundary in morph_accent_phrase_boundary
-    ]
+    morph_accent_phrase_boundary = cast(
+        list[Literal[-1, 0, 1]],
+        [
+            0 if boundary[0] == accent_phrase_boundary_label else 1
+            for boundary in morph_accent_phrase_boundary
+        ],
+    )
     # first `chain_flag` must be -1
     morph_accent_phrase_boundary[0] = -1
     num_boundary = morph_accent_phrase_boundary.count(0) + 1
@@ -214,7 +219,7 @@ def convert_open_jtalk_format_label(
 
     # convert mora-based accent status to morph-based label
     # the accent label for OpenJTalk pushed in first morph
-    morph_accent_status = [
+    morph_accent_status: list[int] = [
         phrase_accent_status_labels.pop(0) if morph_accent_phrase_flag < 1 else 0
         for morph_accent_phrase_flag in morph_accent_phrase_boundary
     ]

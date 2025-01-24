@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
-from marine.types import AccentRepresentMode
+from marine.types import AccentRepresentMode, MarineFeature
 from marine.utils.g2p_util import pron2mora
 from marine.utils.g2p_util.g2p import ACCENT_REPRESENT_FUNC_TABLE
 
@@ -143,7 +143,7 @@ def load_postprocess_vocab(vocab_dir: Path, tasks: list[str]) -> dict[str, Any]:
 
 def apply_postprocess_dict(
     task: str,
-    nodes: list[dict[str, Any]],
+    nodes: list[MarineFeature],
     labels: list[int],
     moras: list[str],
     boundary: list[Literal[0, 1]],

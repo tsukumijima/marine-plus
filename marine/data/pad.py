@@ -1,6 +1,9 @@
-from typing import Any
+from typing import Any, cast
 
+import numpy as np
 import torch
+from marine.types import BatchFeature, BatchItem, PadFeature, PadOutputs
+from numpy.typing import NDArray
 from torch.nn.utils.rnn import pad_sequence
 
 
@@ -21,8 +24,8 @@ class Padsequence(object):
         self.is_inference = is_inference
         self.padding_idx = padding_idx
 
-    def pad_feature(self, inputs: list[dict[str, Any]]) -> dict[str, Any]:
-        padded_feature = {}
+    def pad_feature(self, inputs: list[BatchFeature]) -> PadFeature:
+        padded_feature: dict[str, Any] = {}
 
         for key in self.input_keys:
             feature = [
@@ -41,11 +44,13 @@ class Padsequence(object):
             )
             padded_feature[key] = padded_x
 
-        return padded_feature
+        return cast(PadFeature, padded_feature)
 
     def __call__(
-        self, batch: list[dict[str, Any]]
-    ) -> tuple[dict[str, Any], dict[str, Any] | None, list[Any], list[Any] | None]:
+        self, batch: list[BatchItem]
+    ) -> tuple[
+        PadFeature, PadOutputs | None, list[NDArray[np.uint8]], list[str] | None
+    ]:
         # sort by length
         if not self.is_inference:
             batch = sorted(
@@ -58,22 +63,25 @@ class Padsequence(object):
         padded_inputs = self.pad_feature(inputs)
 
         if not self.is_inference:
-            padded_outputs = {
-                key: {
-                    "label": pad_sequence(
-                        [
-                            # Covnert 1-based label (for pad)
-                            torch.tensor(x["labels"][key] + 1, dtype=torch.long)
-                            for x in batch
-                        ],
-                        batch_first=True,
-                        padding_value=self.padding_idx,
-                    ),
-                    "length": torch.tensor([len(x["labels"][key]) for x in batch]),
-                }
-                for key in self.output_keys
-            }
-            script_ids = [x["ids"] for x in batch]
+            padded_outputs = cast(
+                PadOutputs,
+                {
+                    key: {
+                        "label": pad_sequence(
+                            [
+                                # Convert 1-based label (for pad)
+                                torch.tensor(x["labels"][key] + 1, dtype=torch.long)  # type: ignore
+                                for x in batch
+                            ],
+                            batch_first=True,
+                            padding_value=self.padding_idx,
+                        ),
+                        "length": torch.tensor([len(x["labels"][key]) for x in batch]),  # type: ignore
+                    }
+                    for key in self.output_keys
+                },
+            )
+            script_ids = [x["ids"] for x in batch if x["ids"] is not None]  # type: ignore
         else:
             padded_outputs = None
             script_ids = None

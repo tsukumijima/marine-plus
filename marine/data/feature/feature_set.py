@@ -9,6 +9,7 @@ from marine.data.feature.feature_table import (
     PUNCTUATIONS,
     parse_accent_con_type,
 )
+from marine.types import BatchFeature, MarineFeature
 from marine.utils.g2p_util import pron2mora
 from numpy.typing import NDArray
 
@@ -108,9 +109,7 @@ class FeatureSet(object):
             ]
         )
 
-    def convert_nodes_to_feature(
-        self, nodes: list[dict[str, Any]]
-    ) -> dict[str, NDArray[np.uint8]]:
+    def convert_nodes_to_feature(self, nodes: list[MarineFeature]) -> BatchFeature:
         """
         Input: dict型のリスト
         example:
@@ -168,7 +167,7 @@ class FeatureSet(object):
         # (boundary should be [0, 0, 1, 0, 0 ...])
         features["morph_boundary"][0] = 0
 
-        return features
+        return cast(BatchFeature, features)
 
     def get_punctuation_ids(self) -> list[int]:
         return [self.feature_to_id["mora"][punctuation] for punctuation in PUNCTUATIONS]

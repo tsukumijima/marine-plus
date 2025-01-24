@@ -2,7 +2,7 @@ import json
 import sys
 from logging import getLogger
 from pathlib import Path
-from typing import Dict
+from typing import Any
 
 import pytest
 import torch
@@ -15,7 +15,7 @@ else:
     import importlib_resources
 
 logger = getLogger("test")
-BASE_DIR = Path(importlib_resources.files("marine"))
+BASE_DIR = Path(str(importlib_resources.files("marine")))
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def full_multi_task_metrics() -> MultiTaskMetrics:
 
 
 @pytest.fixture
-def test_log_sample() -> Dict:
+def test_log_sample() -> dict[str, Any]:
     logs = None
     sample_path = BASE_DIR.parent / "tests" / "samples" / "test_log_sample.json"
     with open(sample_path, "r", encoding="utf-8") as file:

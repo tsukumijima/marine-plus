@@ -16,6 +16,7 @@
         "reportUnnecessaryComparison": "none",
         "reportUnnecessaryIsInstance": "none",
         "reportUnknownArgumentType": "none",
+        "reportUnknownLambdaType": "none",
         "reportUnknownMemberType": "none",
         "reportUnknownParameterType": "warning",
         "reportUnknownVariableType": "none",
