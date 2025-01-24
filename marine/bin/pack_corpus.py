@@ -107,7 +107,7 @@ def insert_punctuation_by_extracted_features(
     punctuation_ids,
     accent_status_seq_level,
 ):
-    indexs = np.where(np.in1d(mora_seq_w_puncts, punctuation_ids))[0]
+    indexs = np.where(np.isin(mora_seq_w_puncts, punctuation_ids))[0]
 
     for index in indexs:
         mora_seq_wo_puncts = np.insert(
@@ -174,12 +174,12 @@ def _process(
     # verify the features is available
     # i.e., is the prounnounces is same w/o punctuation
     punct_removed_extracted_mora = feature["mora"][
-        np.in1d(
+        np.isin(
             feature["mora"], punctuation_ids, invert=True
         )  # 発音しない記号は除外している
     ]
     punct_removed_expected_mora = expected_ids[
-        np.in1d(expected_ids, punctuation_ids, invert=True)
+        np.isin(expected_ids, punctuation_ids, invert=True)
     ]
 
     # sys.exit(0)

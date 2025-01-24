@@ -160,7 +160,9 @@ class FeatureSet(object):
                     )
 
                 feature = table.get(node[key], table[self.unk_token])
-                feature = np.array([feature] * len(mora), dtype=np.uint8)
+                # Convert to numpy array first, then cast to uint8 to maintain
+                # the same overflow behavior (avoid deprecation warning)
+                feature = np.array([feature] * len(mora)).astype(np.uint8)
                 features[key] = np.concatenate([features[key], feature], axis=0)
 
         # First Mora could not be boundary

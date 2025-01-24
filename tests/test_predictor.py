@@ -146,5 +146,12 @@ def test_predict(predictor: Predictor) -> None:
 
     print(predictor.predict([nodes], accent_represent_mode="binary"))
     print(predictor.predict([nodes], accent_represent_mode="high_low"))
-    print(predictor.predict([nodes], accent_represent_mode="binary", require_open_jtalk_format=True))  # fmt: skip
-    print(predictor.predict([nodes], accent_represent_mode="high_low", require_open_jtalk_format=True))  # fmt: skip
+
+    # If you want the format for OpenJTalk, `accent_represent_mode` will be fixed as `binary
+    print(
+        predictor.predict(
+            [nodes],
+            accent_represent_mode="binary",
+            require_open_jtalk_format=True,
+        )
+    )
