@@ -34,10 +34,10 @@ class MarineFeature(TypedDict):
     """marine 内部で使用する形態素素性を表す型"""
 
     surface: str  # 表層形
+    pron: str | None  # 発音形式
     pos: str  # 品詞 (例: "名詞:代名詞:一般:*")
     c_type: str  # 活用型
     c_form: str  # 活用形
-    pron: str | None  # 発音形式
     accent_type: int  # アクセント型
     accent_con_type: str  # アクセント結合型
     chain_flag: int  # アクセント句の連結フラグ
@@ -81,14 +81,17 @@ class PredictAnnotates(TypedDict, total=False):
 class BatchFeature(TypedDict):
     """バッチの特徴量を表す型"""
 
+    # 必須フィールド
+    morph_boundary: NDArray[np.uint8]  # 形態素境界情報
+    # config.data.input_keys に依存するフィールド (推論に用いるモデルの config.yaml 定義次第では省略される)
     mora: NDArray[np.uint8]  # モーラ ID 列
+    surface: NDArray[np.uint8]  # 表層形 ID 列
     pos: NDArray[np.uint8]  # 品詞 ID 列
     c_type: NDArray[np.uint8]  # 活用型 ID 列
     c_form: NDArray[np.uint8]  # 活用形 ID 列
     accent_type: NDArray[np.uint8]  # アクセント型 ID 列
     accent_con_type: NDArray[np.uint8]  # アクセント結合型 ID 列
-    chain_flag: NDArray[np.uint8]  # アクセント句の連結フラグ ID 列
-    morph_boundary: NDArray[np.uint8]  # 形態素境界情報
+    chain_flag: NDArray[np.uint8]  # アクセント句の連結フラグ ID 列 (現在の学習レシピでは未使用) # fmt: skip
 
 
 class BatchItem(TypedDict):
@@ -111,15 +114,18 @@ class ModelInputs(TypedDict):
 class PadFeature(TypedDict):
     """パディングされた特徴量を表す型"""
 
+    # 必須フィールド
+    morph_boundary: list[list[list[int]]]  # 形態素境界情報
+    # config.data.input_keys に依存するフィールド (推論に用いるモデルの config.yaml 定義次第では省略される)
     mora: Tensor  # モーラ ID 列
-    mora_length: Tensor  # モーラ長
+    mora_length: Tensor  # モーラ長 (config.data.input_length_key によって定義される)
+    surface: Tensor  # 表層形 ID 列
     pos: Tensor  # 品詞 ID 列
     c_type: Tensor  # 活用型 ID 列
     c_form: Tensor  # 活用形 ID 列
     accent_type: Tensor  # アクセント型 ID 列
     accent_con_type: Tensor  # アクセント結合型 ID 列
-    chain_flag: Tensor  # アクセント句の連結フラグ ID 列
-    morph_boundary: list[list[list[int]]]  # 形態素境界情報
+    chain_flag: Tensor  # アクセント句の連結フラグ ID 列 (現在の学習レシピでは未使用)
 
 
 class PadOutputLabel(TypedDict):
