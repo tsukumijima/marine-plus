@@ -154,12 +154,13 @@ class FeatureSet(object):
                 if key in ["mora", "morph_boundary"]:
                     continue
 
-                if key == "a_con_type":
-                    key = parse_accent_con_type(
+                if key == "accent_con_type":
+                    value = parse_accent_con_type(
                         node["accent_con_type"], node["pos"], unk_token=self.unk_token
                     )
-
-                feature = table.get(node[key], table[self.unk_token])
+                else:
+                    value = node[key]
+                feature = table.get(value, table[self.unk_token])
                 # Convert to numpy array first, then cast to uint8 to maintain
                 # the same overflow behavior (avoid deprecation warning)
                 feature = np.array([feature] * len(mora)).astype(np.uint8)
