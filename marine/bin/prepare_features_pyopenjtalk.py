@@ -5,11 +5,14 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import cpu_count
 from pathlib import Path
 
-import marine.data.jtalk_dict  # noqa
+from marine.data.jtalk_dict import download_and_apply_dictionaries
 from marine.logger import getLogger
 from marine.utils.openjtalk_util import convert_open_jtalk_node_to_feature
 from marine.utils.util import load_json_corpus
 from tqdm import tqdm
+
+# download and apply OpenJTalk dictionaries
+download_and_apply_dictionaries()
 
 logger = None
 

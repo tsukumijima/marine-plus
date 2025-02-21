@@ -58,6 +58,7 @@ setup(
             "isort>=4.3",
             "click",
             "pandas",
+            "httpx",
         ],
         "docs": [
             "sphinx",
