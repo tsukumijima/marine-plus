@@ -55,7 +55,7 @@ setup(
             "black>=19.19b0",
             "flake8>=3.7",
             "flake8-bugbear",
-            "isort>=4.3",
+            "isort>=4.3,<6",
             "click",
             "pandas",
             "httpx",
