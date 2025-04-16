@@ -1,7 +1,9 @@
-from typing import Mapping, Sequence, cast
+from collections.abc import Mapping, Sequence
+from typing import cast
+
+from torch import BoolTensor, Tensor, cat, nn
 
 from marine.modules.crf_tagger import ConditionalRandomField
-from torch import BoolTensor, Tensor, cat, nn
 
 
 def _broadcast_tags(

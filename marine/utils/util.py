@@ -8,11 +8,13 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import torch
+from numpy.typing import NDArray
+
 from marine.data.feature.feature_set import FeatureSet
 from marine.types import AccentRepresentMode
 from marine.utils.g2p_util import mora2phon, pron2mora
 from marine.utils.regex import has_longvowel
-from numpy.typing import NDArray
+
 
 if TYPE_CHECKING:
     from marine.utils.metrics import MultiTaskMetrics
@@ -81,7 +83,7 @@ def load_json_corpus(file_path: Path, suffix: str = "json") -> list[dict[str, An
         file_paths = [file_path]
 
     for path in file_paths:
-        with open(path, "r", encoding="utf-8") as file:
+        with open(path, encoding="utf-8") as file:
             corpus += json.load(file)
 
     return corpus
@@ -97,7 +99,7 @@ def split_corpus(
 ) -> dict[str, Any]:
     try:
         from sklearn.model_selection import train_test_split
-    except BaseException:  # noqa
+    except BaseException:
         raise ImportError('Please install sklearn by `pip install -e ".[dev]"`')
 
     """Split corpus into train, valid, test."""
@@ -240,9 +242,9 @@ def expand_word_label_to_mora(
 
         boundary_indexs = np.where(boundary > 0)[0]
 
-        assert len(boundary_indexs) + 1 == len(
-            label
-        ), f"Not matched length: {len(boundary_indexs) + 1} != {len(label)}"
+        assert len(boundary_indexs) + 1 == len(label), (
+            f"Not matched length: {len(boundary_indexs) + 1} != {len(label)}"
+        )
 
         if target == "intonation_phrase_boundary":
             label_indexs = np.where(label > 0)[0]
@@ -286,9 +288,9 @@ def _convert_ap_based_accent_to_mora_based_accent(
     elif len(phrases) > len(ap_accents):
         ap_accents = np.append(ap_accents, [0] * (len(phrases) - len(ap_accents)))
 
-    assert len(phrases) == len(
-        ap_accents
-    ), f"Not matched seq lengths {len(phrases)} != {len(ap_accents)}"
+    assert len(phrases) == len(ap_accents), (
+        f"Not matched seq lengths {len(phrases)} != {len(ap_accents)}"
+    )
 
     mora_accents = []
 
@@ -330,10 +332,8 @@ def _convert_ap_based_accent_to_mora_based_accent(
             _, mora_accent = pron2mora(moras, accent_label, mode)
         else:
             raise NotImplementedError(
-                (
-                    f"Not supported representation mode {mode}:"
-                    " Representation mode must be selected in binary and high_low"
-                )
+                f"Not supported representation mode {mode}:"
+                " Representation mode must be selected in binary and high_low"
             )
 
         mora_accents += mora_accent
@@ -508,7 +508,7 @@ def plot_attention(
     try:
         import matplotlib.pyplot as plt
         import matplotlib.ticker as ticker
-    except BaseException:  # noqa
+    except BaseException:
         raise ImportError('Please install matplotlib by `pip install -e ".[dev]"`')
 
     fig, ax = plt.subplots()

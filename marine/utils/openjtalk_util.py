@@ -5,9 +5,11 @@ from typing import Literal, cast
 
 import numpy as np
 import pykakasi
+from numpy.typing import NDArray
+
 from marine.data.feature.feature_table import RAW_FEATURE_KEYS
 from marine.types import MarineFeature, MarineLabel, NJDFeature, OpenJTalkFormatLabel
-from numpy.typing import NDArray
+
 
 kakasi = pykakasi.kakasi()
 BOIN_DICT = {"a": "ア", "i": "イ", "u": "ウ", "e": "エ", "o": "オ", "n": "ン"}

@@ -3,6 +3,7 @@ from logging import getLogger
 from marine.utils.g2p_util.accent import set_accent_status
 from marine.utils.g2p_util.g2p import pron2mora, pron2phon
 
+
 logger = getLogger("test")
 
 

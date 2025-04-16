@@ -1,9 +1,10 @@
 from typing import Any, Literal
 
 import torch
+from torchmetrics import F1Score, Metric, MetricCollection
+
 from marine.types import AccentRepresentMode
 from marine.utils.util import convert_ap_based_accent_to_mora_based_accent
-from torchmetrics import F1Score, Metric, MetricCollection
 
 
 class SentenceLevelAccuracy(Metric):
@@ -38,7 +39,7 @@ class SentenceLevelAccuracy(Metric):
         return self.correct.float() / self.total
 
 
-class MultiTaskMetrics(object):
+class MultiTaskMetrics:
     """Metrics to calculate scores."""
 
     def __init__(

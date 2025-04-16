@@ -15,7 +15,7 @@ def find_version(*file_paths: str) -> str:
 
 
 if exists("README.md"):
-    with open("README.md", "r", encoding="utf-8") as fh:
+    with open("README.md", encoding="utf-8") as fh:
         LONG_DESC = LONG_DESC = fh.read()
 else:
     LONG_DESC = ""
@@ -24,7 +24,7 @@ else:
 setup(
     name="marine-plus",
     version=find_version("marine", "__init__.py"),
-    description="Marine: Multi-task learning based on Japanese accent estimation (Also supports Windows and Python 3.12)",  # noqa
+    description="Marine: Multi-task learning based on Japanese accent estimation (Also supports Windows and Python 3.12)",
     packages=find_packages(),
     author="Byeongseon Park",
     author_email="6gsn.park@gmail.com",
@@ -51,11 +51,8 @@ setup(
             "pytest",
             "pytest-cov",
             "docstr-coverage",
-            "pysen",
-            "black>=19.19b0",
-            "flake8>=3.7",
-            "flake8-bugbear",
-            "isort>=4.3,<6",
+            "ruff",
+            "taskipy",
             "click",
             "pandas",
             "httpx",
@@ -87,8 +84,6 @@ setup(
         "Operating System :: MacOS",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",

@@ -8,11 +8,13 @@ from pathlib import Path
 
 import numpy as np
 from joblib import dump, load
+from tqdm import tqdm
+
 from marine.data.feature.feature_set import FeatureSet
 from marine.logger import getLogger
 from marine.utils.g2p_util import pron2mora
 from marine.utils.util import load_json_corpus, split_corpus
-from tqdm import tqdm
+
 
 logger = None
 
@@ -243,10 +245,10 @@ def _process(
             # print(script_id)
             # print(print_diff_hl(expected_txt, extructed_txt))
             with open("./wrong_mora_info.csv", mode="a", encoding="utf-8") as f:
-                f.write("{}|{}|{}\n".format(script_id, extracted_txt, expected_txt))
+                f.write(f"{script_id}|{extracted_txt}|{expected_txt}\n")
 
             logger.debug(
-                (f"Wrong mora [{script_id}]:" f"{expected_txt}" f" != {extracted_txt}")
+                f"Wrong mora [{script_id}]:" f"{expected_txt}" f" != {extracted_txt}"
             )
         return None
 
@@ -328,9 +330,7 @@ def entry(argv=sys.argv):
 
     assert len(corpus) == len(
         features
-    ), "Not match script size between corpus and feature files{} != {}".format(
-        len(corpus), len(features)
-    )
+    ), f"Not match script size between corpus and feature files{len(corpus)} != {len(features)}"
     assert [script["script_id"] for script in corpus] == [
         script["script_id"] for script in features
     ], "Not match script ids between corpus and feature files."

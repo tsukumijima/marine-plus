@@ -1,7 +1,8 @@
-from typing import Mapping
+from collections.abc import Mapping
+
+from torch import Tensor, cat, nn
 
 from marine.data.feature.feature_set import FeatureSet
-from torch import Tensor, cat, nn
 
 
 class SimpleEmbedding(nn.Module):

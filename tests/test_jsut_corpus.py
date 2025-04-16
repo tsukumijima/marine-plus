@@ -2,6 +2,7 @@ from logging import getLogger
 
 from marine.bin.jsut2corpus import parse_jsut_annotation
 
+
 logger = getLogger("test")
 
 

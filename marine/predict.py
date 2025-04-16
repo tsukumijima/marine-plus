@@ -5,6 +5,10 @@ from pathlib import Path
 from typing import Any, cast
 
 import torch
+from omegaconf import DictConfig, OmegaConf
+from torch import Tensor, nn
+from torch.nn.utils.rnn import pad_sequence
+
 from marine.data.feature.feature_set import FeatureSet
 from marine.data.pad import Padsequence
 from marine.models import (
@@ -31,9 +35,7 @@ from marine.utils.util import (
     expand_word_label_to_mora,
     sequence_mask,
 )
-from omegaconf import DictConfig, OmegaConf
-from torch import Tensor, nn
-from torch.nn.utils.rnn import pad_sequence
+
 
 if sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources
@@ -80,9 +82,9 @@ class Predictor:
         elif isinstance(model_dir, str):
             self.model_dir = Path(model_dir)
 
-        assert (
-            isinstance(self.model_dir, Path) and self.model_dir.exists()
-        ), f"Model directory doesn't exists: {self.model_dir.as_posix()}"
+        assert isinstance(self.model_dir, Path) and self.model_dir.exists(), (
+            f"Model directory doesn't exists: {self.model_dir.as_posix()}"
+        )
 
         self.device = device
         self.config = cast(DictConfig, OmegaConf.load(self.model_dir / "config.yaml"))
@@ -128,9 +130,9 @@ class Predictor:
         elif isinstance(postprocess_vocab_dir, str):
             self.postprocess_vocab_dir = Path(postprocess_vocab_dir)
 
-        assert (
-            self.postprocess_vocab_dir.exists()
-        ), f"Vocab directory doesn't exists: {self.postprocess_vocab_dir.as_posix()}"
+        assert self.postprocess_vocab_dir.exists(), (
+            f"Vocab directory doesn't exists: {self.postprocess_vocab_dir.as_posix()}"
+        )
 
         if skip_post_process:
             self.postprocess_vocab, self.postprocess_targets = None, None
@@ -153,10 +155,8 @@ class Predictor:
     ) -> MarineLabel | OpenJTalkFormatLabel:
         if accent_represent_mode not in ["binary", "high_low"]:
             raise NotImplementedError(
-                (
-                    f"Not supported representation mode {accent_represent_mode}:"
-                    " Representation mode must be selected in binary and high_low"
-                )
+                f"Not supported representation mode {accent_represent_mode}:"
+                " Representation mode must be selected in binary and high_low"
             )
 
         if require_open_jtalk_format and accent_represent_mode != "binary":
@@ -375,10 +375,8 @@ class Predictor:
                 annotate = [torch.tensor(ann) for ann in annotate]
             elif not isinstance(annotates[key][0], torch.Tensor):
                 raise ValueError(
-                    (
-                        "Annoate labels must be List[List] or List[tensor]:"
-                        f" {type(annotates[key][0])}"
-                    )
+                    "Annoate labels must be List[List] or List[tensor]:"
+                    f" {type(annotates[key][0])}"
                 )
 
             result[key] = pad_sequence(annotate, batch_first=True).to(self.device)  # type: ignore

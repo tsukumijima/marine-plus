@@ -2,12 +2,13 @@ from typing import Any, cast
 
 import numpy as np
 import torch
-from marine.types import BatchFeature, BatchItem, PadFeature, PadOutputs
 from numpy.typing import NDArray
 from torch.nn.utils.rnn import pad_sequence
 
+from marine.types import BatchFeature, BatchItem, PadFeature, PadOutputs
 
-class Padsequence(object):
+
+class Padsequence:
     def __init__(
         self,
         input_keys: list[str],

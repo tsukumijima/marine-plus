@@ -4,9 +4,11 @@ from collections import defaultdict
 from pathlib import Path
 
 from joblib import dump
+from tqdm import tqdm
+
 from marine.logger import getLogger
 from marine.utils.util import load_json_corpus
-from tqdm import tqdm
+
 
 logger = None
 

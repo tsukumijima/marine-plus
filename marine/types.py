@@ -4,6 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 from torch import Tensor
 
+
 # アクセント表現モード
 AccentRepresentMode = Literal[
     "binary",  # アクセント核位置を1、それ以外を0で表現

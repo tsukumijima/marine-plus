@@ -6,8 +6,10 @@ from typing import Any
 
 import pytest
 import torch
-from marine.utils.metrics import MultiTaskMetrics, SentenceLevelAccuracy
 from numpy.testing import assert_almost_equal
+
+from marine.utils.metrics import MultiTaskMetrics, SentenceLevelAccuracy
+
 
 if sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources
@@ -68,7 +70,7 @@ def full_multi_task_metrics() -> MultiTaskMetrics:
 def test_log_sample() -> dict[str, Any]:
     logs = None
     sample_path = BASE_DIR.parent / "tests" / "samples" / "test_log_sample.json"
-    with open(sample_path, "r", encoding="utf-8") as file:
+    with open(sample_path, encoding="utf-8") as file:
         logs = json.load(file)
     return logs
 

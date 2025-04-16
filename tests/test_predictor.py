@@ -1,4 +1,5 @@
 import pytest
+
 from marine.predict import Predictor
 from marine.types import MarineFeature
 

@@ -8,6 +8,10 @@ from shutil import copyfile
 import hydra
 import torch
 from hydra.utils import to_absolute_path
+from omegaconf import DictConfig, OmegaConf
+from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
+
 from marine.bin.test import test_model
 from marine.data.feature.feature_set import FeatureSet
 from marine.data.util import load_dataset
@@ -27,9 +31,7 @@ from marine.utils.util import (
     pad_incomplete_accent_logits,
     plot_batch_attention,
 )
-from omegaconf import DictConfig, OmegaConf
-from torch.utils.tensorboard import SummaryWriter
-from tqdm import tqdm
+
 
 logger = None
 
@@ -123,7 +125,7 @@ def train_model(
 
     for epoch in range(num_epochs):
         logger.info("-" * 10)
-        logger.info("Epoch {}/{}".format(epoch, num_epochs - 1))
+        logger.info(f"Epoch {epoch}/{num_epochs - 1}")
         logger.info("-" * 10)
 
         since = time.time()

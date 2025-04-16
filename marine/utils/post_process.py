@@ -4,9 +4,11 @@ from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
+
 from marine.types import AccentRepresentMode, MarineFeature
 from marine.utils.g2p_util import pron2mora
 from marine.utils.g2p_util.g2p import ACCENT_REPRESENT_FUNC_TABLE
+
 
 FEATURE_PARSE_SYMBOL = "/"
 FEATURE_NODE_SPLIT_SYMBOL = "_"

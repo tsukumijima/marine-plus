@@ -5,6 +5,9 @@ import sys
 from pathlib import Path
 
 import torch
+from omegaconf import OmegaConf
+from tqdm import tqdm
+
 from marine.data.feature.feature_set import FeatureSet
 from marine.data.util import load_dataset
 from marine.logger import getLogger
@@ -25,8 +28,7 @@ from marine.utils.util import (
     pad_incomplete_accent_logits,
     plot_batch_attention,
 )
-from omegaconf import OmegaConf
-from tqdm import tqdm
+
 
 logger = None
 

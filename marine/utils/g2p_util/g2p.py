@@ -1,7 +1,9 @@
-from typing import Any, Callable, Literal
+from collections.abc import Callable
+from typing import Any, Literal
+
+from numpy.typing import NDArray
 
 from marine.types import AccentRepresentMode
-from numpy.typing import NDArray
 
 from .accent import (
     represent_accent_binary,
@@ -19,6 +21,7 @@ from .util import (
     SUPPORTED_MORA,
     get_phoneme,
 )
+
 
 ACCENT_REPRESENT_FUNC_TABLE: dict[
     AccentRepresentMode, dict[str, Callable[[int, int, int], Literal[0, 1]]]

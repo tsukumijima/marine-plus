@@ -7,13 +7,13 @@ Conditional random field
 
 import math
 from logging import getLogger
-from typing import List, Optional, Tuple, Union
 
 import torch
 
+
 logger = getLogger(__name__)
 
-VITERBI_DECODING = Tuple[List[int], float]  # a list of tags, and a viterbi score
+VITERBI_DECODING = tuple[list[int], float]  # a list of tags, and a viterbi score
 
 
 def logsumexp(
@@ -42,10 +42,10 @@ def logsumexp(
 def viterbi_decode(
     tag_sequence: torch.Tensor,
     transition_matrix: torch.Tensor,
-    tag_observations: Optional[List[int]] = None,
-    allowed_start_transitions: torch.Tensor = None,
-    allowed_end_transitions: torch.Tensor = None,
-    top_k: int = None,
+    tag_observations: list[int] | None = None,
+    allowed_start_transitions: torch.Tensor | None = None,
+    allowed_end_transitions: torch.Tensor | None = None,
+    top_k: int | None = None,
 ):
     """
     Perform Viterbi decoding in log space over a sequence given a transition matrix
@@ -102,7 +102,6 @@ def viterbi_decode(
     )
 
     if has_start_end_restrictions:
-
         if allowed_end_transitions is None:
             allowed_end_transitions = torch.zeros(num_tags)
         if allowed_start_transitions is None:
@@ -136,9 +135,7 @@ def viterbi_decode(
         if len(tag_observations) != sequence_length:
             raise ValueError(
                 "Observations were provided, but they were not the same length "
-                "as the sequence. Found sequence of length: {} and evidence: {}".format(
-                    sequence_length, tag_observations
-                )
+                f"as the sequence. Found sequence of length: {sequence_length} and evidence: {tag_observations}"
             )
     else:
         tag_observations = [-1 for _ in range(sequence_length)]
@@ -236,7 +233,7 @@ class ConditionalRandomField(torch.nn.Module):
     def __init__(
         self,
         num_tags: int,
-        constraints: List[Tuple[int, int]] = None,
+        constraints: list[tuple[int, int]] | None = None,
         include_start_end_transitions: bool = True,
     ) -> None:
         super().__init__()
@@ -405,7 +402,10 @@ class ConditionalRandomField(torch.nn.Module):
         return score
 
     def forward(
-        self, inputs: torch.Tensor, tags: torch.Tensor, mask: torch.BoolTensor = None
+        self,
+        inputs: torch.Tensor,
+        tags: torch.Tensor,
+        mask: torch.BoolTensor | None = None,
     ) -> torch.Tensor:
         """Computes the log likelihood for the given batch of input sequences $(x,y)$
         Args:
@@ -429,8 +429,11 @@ class ConditionalRandomField(torch.nn.Module):
         return torch.sum(log_numerator - log_denominator)
 
     def viterbi_tags(
-        self, logits: torch.Tensor, mask: torch.BoolTensor = None, top_k: int = None
-    ) -> Union[List[VITERBI_DECODING], List[List[VITERBI_DECODING]]]:
+        self,
+        logits: torch.Tensor,
+        mask: torch.BoolTensor | None = None,
+        top_k: int | None = None,
+    ) -> list[VITERBI_DECODING] | list[list[VITERBI_DECODING]]:
         """
         Uses viterbi algorithm to find most likely tags for the given inputs.
         If constraints are applied, disallows all other transitions.
@@ -468,19 +471,15 @@ class ConditionalRandomField(torch.nn.Module):
         transitions[:num_tags, :num_tags] = constrained_transitions.data
 
         if self.include_start_end_transitions:
-            transitions[
-                start_tag, :num_tags
-            ] = self.start_transitions.detach() * self._constraint_mask[
-                start_tag, :num_tags
-            ].data + -10000.0 * (
-                1 - self._constraint_mask[start_tag, :num_tags].detach()
+            transitions[start_tag, :num_tags] = (
+                self.start_transitions.detach()
+                * self._constraint_mask[start_tag, :num_tags].data
+                + -10000.0 * (1 - self._constraint_mask[start_tag, :num_tags].detach())
             )
-            transitions[
-                :num_tags, end_tag
-            ] = self.end_transitions.detach() * self._constraint_mask[
-                :num_tags, end_tag
-            ].data + -10000.0 * (
-                1 - self._constraint_mask[:num_tags, end_tag].detach()
+            transitions[:num_tags, end_tag] = (
+                self.end_transitions.detach()
+                * self._constraint_mask[:num_tags, end_tag].data
+                + -10000.0 * (1 - self._constraint_mask[:num_tags, end_tag].detach())
             )
         else:
             transitions[start_tag, :num_tags] = -10000.0 * (

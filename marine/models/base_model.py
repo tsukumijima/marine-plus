@@ -1,9 +1,9 @@
-# coding: utf-8
 
-from typing import Mapping
+from collections.abc import Mapping
+
+from torch import Tensor, nn
 
 from marine.models.embedding import SimpleEmbedding
-from torch import Tensor, nn
 
 
 class BaseModel(nn.Module):

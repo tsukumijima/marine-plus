@@ -2,7 +2,7 @@ import asyncio
 import json
 import traceback
 from pathlib import Path
-from typing import Dict, List, Set
+
 
 try:
     import httpx
@@ -49,7 +49,7 @@ class DictionaryDownloader:
             json.dumps(self.sha_info, indent=2, ensure_ascii=False), encoding="utf-8"
         )
 
-    async def _get_dict_files(self, client: httpx.AsyncClient) -> List[Dict[str, str]]:
+    async def _get_dict_files(self, client: httpx.AsyncClient) -> list[dict[str, str]]:
         """
         Get dictionary files information from GitHub API.
 
@@ -73,7 +73,7 @@ class DictionaryDownloader:
         )
 
     async def _download_file(
-        self, client: httpx.AsyncClient, file_info: Dict[str, str]
+        self, client: httpx.AsyncClient, file_info: dict[str, str]
     ) -> None:
         """
         Download a single dictionary file.
@@ -96,7 +96,7 @@ class DictionaryDownloader:
         self.sha_info[file_info["name"]] = file_info["sha"]
         print(f'Downloaded: {file_info["name"]}')
 
-    def _cleanup_obsolete_files(self, current_files: Set[str]) -> None:
+    def _cleanup_obsolete_files(self, current_files: set[str]) -> None:
         """
         Remove dictionary files that no longer exist in the repository.
 

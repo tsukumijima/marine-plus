@@ -1,9 +1,10 @@
-from typing import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 import torch
+from torch import Tensor, nn
+
 from marine.modules.attention import BahdanauAttention, ZoneOutCell
 from marine.utils.util import get_ap_length
-from torch import Tensor, nn
 
 
 class AttentionBasedLSTMDecoder(nn.Module):

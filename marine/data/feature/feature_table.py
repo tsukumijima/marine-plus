@@ -4,6 +4,7 @@ Feature tables for embeddings
 
 import re
 
+
 # Mora list
 MORAS = [
     # x

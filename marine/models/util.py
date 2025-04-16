@@ -2,10 +2,12 @@ from logging import getLogger
 from typing import Any
 
 from hydra.utils import instantiate
-from marine.data.feature.feature_set import FeatureSet
 from omegaconf import DictConfig
 from torch import nn
 from torch.optim import Optimizer
+
+from marine.data.feature.feature_set import FeatureSet
+
 
 logger = getLogger(__name__)
 

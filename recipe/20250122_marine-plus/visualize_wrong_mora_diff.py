@@ -2,10 +2,12 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
+
 from marine.utils.openjtalk_util import print_diff_hl
 
+
 # Load text.yaml
-with open(Path(__file__).parent / "data" / "text.yaml", "r", encoding="utf-8") as f:
+with open(Path(__file__).parent / "data" / "text.yaml", encoding="utf-8") as f:
     text_data = yaml.safe_load(f)
 
 df = pd.read_csv(

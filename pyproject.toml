@@ -1,22 +1,37 @@
 [build-system]
 requires = ["wheel", "setuptools"]
 
-[tool.pysen]
-version = "0.10.2"
+[tool.taskipy.tasks]
+install = "if [ ! -d '.venv' ]; then python -m venv .venv; fi && .venv/bin/pip install -U -e '.[dev,pyopenjtalk]'"
+lint = ".venv/bin/ruff check --fix ."
+format = ".venv/bin/ruff format ."
+test = ".venv/bin/pytest"
 
-[tool.pysen.lint]
-enable_black = true
-enable_flake8 = true
-enable_isort = true
-enable_mypy = false
-mypy_preset = "entry"
-line_length = 88
-py_version = "py38"
+[tool.ruff]
+# 1行の長さを最大88文字に設定
+line-length = 88
+# インデントの幅を4スペースに設定
+indent-width = 4
+# Python 3.10 を利用する
+target-version = "py310"
 
-[[tool.pysen.lint.mypy_targets]]
-paths = [".", "tests/"]
+[tool.ruff.lint]
+# flake8, pycodestyle, pyupgrade, isort, Ruff 固有のルールを使う
+select = ["F", "E", "W", "UP", "I", "RUF"]
+ignore = [
+    "E501",    # 1行の長さを超えている場合の警告を抑制
+    "E731",    # Do not assign a `lambda` expression, use a `def` を抑制
+    "RUF001",  # 全角記号など `ambiguous unicode character` も使いたいため
+    "RUF002",  # 全角記号など `ambiguous unicode character` も使いたいため
+    "RUF003",  # 全角記号など `ambiguous unicode character` も使いたいため
+]
 
-[tool.pytest.ini.options]
-minversion="6.0"
-addopts = "-ra -q"
-testpaths = ["tests"]
+[tool.ruff.lint.isort]
+# インポートブロックの後に2行空ける
+lines-after-imports = 2
+
+[tool.ruff.format]
+# ダブルクオートを使う
+quote-style = "double"
+# インデントにはスペースを使う
+indent-style = "space"

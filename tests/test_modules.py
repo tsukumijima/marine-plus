@@ -6,8 +6,10 @@ from logging import getLogger
 from typing import Any
 
 import torch
-from marine.modules.crf_tagger import logsumexp, viterbi_decode
 from numpy.testing import assert_almost_equal, assert_equal
+
+from marine.modules.crf_tagger import logsumexp, viterbi_decode
+
 
 logger = getLogger("test")
 

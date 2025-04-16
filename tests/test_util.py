@@ -1,13 +1,15 @@
 import json
 import sys
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 import pytest
 import torch
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
+from numpy.testing import assert_almost_equal
+from omegaconf import DictConfig
+
 from marine.data.feature.feature_set import FeatureSet
 from marine.data.feature.feature_table import (
     is_adjective,
@@ -28,8 +30,7 @@ from marine.utils.util import (
     get_accent_nucleus_in_binary_accent_stauts_seq,
     get_accent_nucleus_in_high_low_accent_stauts_seq,
 )
-from numpy.testing import assert_almost_equal
-from omegaconf import DictConfig
+
 
 if sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources
@@ -64,10 +65,10 @@ def default_vocab_path() -> Path:
 
 
 @pytest.fixture
-def test_log_sample() -> Dict:
+def test_log_sample() -> dict:
     logs = None
     sample_path = BASE_DIR.parent / "tests" / "samples" / "test_log_sample.json"
-    with open(sample_path, "r", encoding="utf-8") as file:
+    with open(sample_path, encoding="utf-8") as file:
         logs = json.load(file)
     return logs
 

@@ -8,7 +8,7 @@
 - フォーク前のコードにはほとんど Type Hints が付与されていなかったが、このフォークでは可能な限り Type Hints を付与し、補完やライブラリ利用時のミスを減らす
 - Type Hints 付与時、Python 3.9 以下のサポートを考慮する必要はない
   - 具体的には、`List[int]` / `Dict[str, int]` ではなく `list[int]` / `dict[str, int]` と記述し、Union 型には `|` を使い、Optional 型は使わず `int | None` のように記述する
-- `pysen run format` (内部で isort + black が動いている) でコードをフォーマットする
+- `task format` でコードをフォーマットする
   - black のフォーマットに合わせ、シングルクオートではなくダブルクオートを用いる
 
 ## 概要

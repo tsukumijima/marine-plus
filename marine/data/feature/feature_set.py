@@ -4,6 +4,8 @@ from typing import Any, cast
 
 import joblib
 import numpy as np
+from numpy.typing import NDArray
+
 from marine.data.feature.feature_table import (
     FEATURE_TABLES,
     PUNCTUATIONS,
@@ -11,12 +13,12 @@ from marine.data.feature.feature_table import (
 )
 from marine.types import BatchFeature, MarineFeature
 from marine.utils.g2p_util import pron2mora
-from numpy.typing import NDArray
+
 
 logger = getLogger(__name__)
 
 
-class FeatureSet(object):
+class FeatureSet:
     """
     A converter for embedding features
     """

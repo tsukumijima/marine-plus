@@ -1,6 +1,6 @@
-# coding: utf-8
 
 import re
+
 
 _re_has_longvowel = None
 _re_hiragana = None
