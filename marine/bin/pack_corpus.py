@@ -124,13 +124,13 @@ def insert_punctuation_by_extracted_features(
 
             # the label where punctuation are must be 0
             labels[label_key].insert(index, 0)
-            assert len(mora_seq_wo_puncts) == len(
-                labels[label_key]
-            ), f"Length of inserted result is not matched: {len(mora_seq_wo_puncts)} != {len(labels[label_key])} ({label_key})"
+            assert len(mora_seq_wo_puncts) == len(labels[label_key]), (
+                f"Length of inserted result is not matched: {len(mora_seq_wo_puncts)} != {len(labels[label_key])} ({label_key})"
+            )
 
-    assert np.array_equal(
-        mora_seq_w_puncts, mora_seq_wo_puncts
-    ), f"The inserted mora seq not same with original mora seq: {mora_seq_w_puncts} != {mora_seq_wo_puncts}"
+    assert np.array_equal(mora_seq_w_puncts, mora_seq_wo_puncts), (
+        f"The inserted mora seq not same with original mora seq: {mora_seq_w_puncts} != {mora_seq_wo_puncts}"
+    )
 
     return labels
 
@@ -203,7 +203,7 @@ def _process(
                     punctuation_ids,
                     accent_status_seq_level,
                 )
-            except:
+            except Exception:
                 return None
 
         for key in labels.keys():
@@ -220,9 +220,9 @@ def _process(
                     + 1
                 )
                 accents = _original_labels["accent_status"]
-                assert (
-                    len(accents) == num_boundary
-                ), "Unmatched length of sequnce between ac and ap"
+                assert len(accents) == num_boundary, (
+                    "Unmatched length of sequnce between ac and ap"
+                )
                 labels["accent_status"] = np.array(
                     _original_labels["accent_status"], dtype=np.uint8
                 )
@@ -247,9 +247,7 @@ def _process(
             with open("./wrong_mora_info.csv", mode="a", encoding="utf-8") as f:
                 f.write(f"{script_id}|{extracted_txt}|{expected_txt}\n")
 
-            logger.debug(
-                f"Wrong mora [{script_id}]:" f"{expected_txt}" f" != {extracted_txt}"
-            )
+            logger.debug(f"Wrong mora [{script_id}]:{expected_txt} != {extracted_txt}")
         return None
 
     return script_id, feature, labels
@@ -282,9 +280,9 @@ def _split_corpus_by_ids(corpus, id_groups):
 
     for key, target_ids in id_groups.items():
         scripts = list(filter(lambda x: x[0] in target_ids, corpus))
-        assert len(scripts) == len(
-            target_ids
-        ), f"Not enough number of scripts for {key}: {len(scripts):,} != {len(target_ids):,}"
+        assert len(scripts) == len(target_ids), (
+            f"Not enough number of scripts for {key}: {len(scripts):,} != {len(target_ids):,}"
+        )
         _corpus[key] = scripts
 
     # When specified the ID group including in val, test
@@ -328,17 +326,17 @@ def entry(argv=sys.argv):
     corpus = load_json_corpus(args.corpus_path)
     features = load_json_corpus(args.feature_path)
 
-    assert len(corpus) == len(
-        features
-    ), f"Not match script size between corpus and feature files{len(corpus)} != {len(features)}"
+    assert len(corpus) == len(features), (
+        f"Not match script size between corpus and feature files{len(corpus)} != {len(features)}"
+    )
     assert [script["script_id"] for script in corpus] == [
         script["script_id"] for script in features
     ], "Not match script ids between corpus and feature files."
 
     if args.max_size > 0:
-        assert (
-            len(corpus) > args.max_size
-        ), f"Not enough number of script: {len(corpus)} < {args.max_size}"
+        assert len(corpus) > args.max_size, (
+            f"Not enough number of script: {len(corpus)} < {args.max_size}"
+        )
         corpus = corpus[: args.max_size]
         features = features[: args.max_size]
 

@@ -1,5 +1,5 @@
+import importlib.resources as importlib_resources
 import re
-import sys
 import warnings
 from pathlib import Path
 from typing import Any, cast
@@ -36,11 +36,6 @@ from marine.utils.util import (
     sequence_mask,
 )
 
-
-if sys.version_info >= (3, 9):
-    import importlib.resources as importlib_resources
-else:
-    import importlib_resources
 
 BASE_DIR = Path(str(importlib_resources.files("marine")))
 DEFAULT_POSTPROCESS_VOCAB_DIR = BASE_DIR / "dict"

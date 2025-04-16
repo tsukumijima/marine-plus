@@ -1,5 +1,5 @@
+import importlib.resources as importlib_resources
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -31,11 +31,6 @@ from marine.utils.util import (
     get_accent_nucleus_in_high_low_accent_stauts_seq,
 )
 
-
-if sys.version_info >= (3, 9):
-    import importlib.resources as importlib_resources
-else:
-    import importlib_resources
 
 BASE_DIR = Path(importlib_resources.files("marine"))
 

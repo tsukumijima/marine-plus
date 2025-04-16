@@ -11,7 +11,7 @@ class LogLikelhood(_Loss):
             [torch.Tensor, torch.Tensor, torch.Tensor | None], torch.Tensor
         ],
     ) -> None:
-        super(LogLikelhood, self).__init__()
+        super().__init__()
         self.log_likehood_func = log_likehood_func
 
     def forward(

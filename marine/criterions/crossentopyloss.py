@@ -4,7 +4,7 @@ from torch.nn.modules.loss import _Loss
 
 class CrossEntropyLoss(_Loss):
     def __init__(self) -> None:
-        super(CrossEntropyLoss, self).__init__()
+        super().__init__()
         self.loss_func = torch.nn.CrossEntropyLoss(reduction="sum", ignore_index=0)
 
     def forward(

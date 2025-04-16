@@ -1,5 +1,5 @@
+import importlib.resources as importlib_resources
 import json
-import sys
 from logging import getLogger
 from pathlib import Path
 from typing import Any
@@ -10,11 +10,6 @@ from numpy.testing import assert_almost_equal
 
 from marine.utils.metrics import MultiTaskMetrics, SentenceLevelAccuracy
 
-
-if sys.version_info >= (3, 9):
-    import importlib.resources as importlib_resources
-else:
-    import importlib_resources
 
 logger = getLogger("test")
 BASE_DIR = Path(str(importlib_resources.files("marine")))

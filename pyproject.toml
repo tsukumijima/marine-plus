@@ -21,9 +21,11 @@ select = ["F", "E", "W", "UP", "I", "RUF"]
 ignore = [
     "E501",    # 1行の長さを超えている場合の警告を抑制
     "E731",    # Do not assign a `lambda` expression, use a `def` を抑制
+    "UP038",   # 非推奨化されているルールのため
     "RUF001",  # 全角記号など `ambiguous unicode character` も使いたいため
     "RUF002",  # 全角記号など `ambiguous unicode character` も使いたいため
     "RUF003",  # 全角記号など `ambiguous unicode character` も使いたいため
+    "RUF005",  # 万が一のリグレッション回避のため抑制
 ]
 
 [tool.ruff.lint.isort]
