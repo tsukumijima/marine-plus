@@ -85,9 +85,9 @@ def pron2mora(
                 represented_accent = represent_accent(index, high, end_low)
                 represented_accents.append(represented_accent)
 
-        assert len(moras) == len(
-            represented_accents
-        ), f"Wrong repersentation : {moras} != {represented_accents}"
+        assert len(moras) == len(represented_accents), (
+            f"Wrong repersentation : {moras} != {represented_accents}"
+        )
 
         return moras, represented_accents
 

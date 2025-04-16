@@ -86,7 +86,7 @@ class DictionaryDownloader:
 
         # Download file
         raw_url = (
-            f'{GITHUB_RAW_BASE}/{REPO_NAME}/{BRANCH}/{DICT_PATH}/{file_info["name"]}'
+            f"{GITHUB_RAW_BASE}/{REPO_NAME}/{BRANCH}/{DICT_PATH}/{file_info['name']}"
         )
         response = await client.get(raw_url)
         response.raise_for_status()
@@ -94,7 +94,7 @@ class DictionaryDownloader:
         # Save file and update SHA info
         local_path.write_bytes(response.content)
         self.sha_info[file_info["name"]] = file_info["sha"]
-        print(f'Downloaded: {file_info["name"]}')
+        print(f"Downloaded: {file_info['name']}")
 
     def _cleanup_obsolete_files(self, current_files: set[str]) -> None:
         """
@@ -131,7 +131,7 @@ class DictionaryDownloader:
                     if local_path.exists():
                         stored_sha = self.sha_info.get(file_info["name"])
                         if stored_sha == file_info["sha"]:
-                            print(f'Skipping {file_info["name"]}: Already up to date.')
+                            print(f"Skipping {file_info['name']}: Already up to date.")
                             needs_download = False
 
                     if needs_download:

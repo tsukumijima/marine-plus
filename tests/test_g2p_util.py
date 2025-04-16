@@ -18,7 +18,6 @@ def test_accent_type_prediction():
         # Type 3
         (3, (1, 3)),
     ]:
-
         status = set_accent_status(accent)
         assert status == expected
 
@@ -167,7 +166,6 @@ def test_mora_split():
             ("ギインリッポー", ["ギ", "イ", "ン", "リ", "ッ", "ポ", "ー"]),
         ]
     ):
-
         moras = pron2mora(pron)
 
         logger.info(f"No.{index} {pron}")

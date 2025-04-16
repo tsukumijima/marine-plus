@@ -200,7 +200,9 @@ def parse_jsut_annotation(
         == len(binary_accents)
         == len(accent_phrase_boundaries)
         == len(intonation_phrase_boundaries)
-    ), f"{len(moras)} != {len(binary_accents)} != {len(accent_phrase_boundaries)} != {len(intonation_phrase_boundaries)}"
+    ), (
+        f"{len(moras)} != {len(binary_accents)} != {len(accent_phrase_boundaries)} != {len(intonation_phrase_boundaries)}"
+    )
 
     accents = convert_mask_seq_to_int_seq(binary_accents)
     accent_phrase_boundaries = convert_mask_seq_to_int_seq(accent_phrase_boundaries)

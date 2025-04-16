@@ -219,7 +219,9 @@ def parse_jsut_annotation(
         == len(binary_accents)
         == len(accent_phrase_boundaries)
         == len(intonation_phrase_boundaries)
-    ), f"{len(moras)} != {len(binary_accents)} != {len(accent_phrase_boundaries)} != {len(intonation_phrase_boundaries)},{annotation}"
+    ), (
+        f"{len(moras)} != {len(binary_accents)} != {len(accent_phrase_boundaries)} != {len(intonation_phrase_boundaries)},{annotation}"
+    )
 
     accents = convert_mask_seq_to_int_seq(binary_accents)
     accent_phrase_boundaries = convert_mask_seq_to_int_seq(accent_phrase_boundaries)
@@ -260,7 +262,6 @@ def load_yaml_corpus(
     text_file_name,
     annotation_file_name,
 ):
-
     text_yaml_path = os.path.join(yaml_corpus_dir, text_file_name)
     annotation_yaml_path = os.path.join(yaml_corpus_dir, annotation_file_name)
 

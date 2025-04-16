@@ -154,9 +154,9 @@ def convert_open_jtalk_format_label(
     morph_boundary_label: int = 1,
 ) -> OpenJTalkFormatLabel:
     assert "accent_status" in labels.keys(), "`accent_status` is missing in labels"
-    assert (
-        "accent_phrase_boundary" in labels.keys()
-    ), "`accent_phrase_boundary` is missing in labels"
+    assert "accent_phrase_boundary" in labels.keys(), (
+        "`accent_phrase_boundary` is missing in labels"
+    )
 
     # squeeze results
     mora_accent_status = labels["accent_status"][0]

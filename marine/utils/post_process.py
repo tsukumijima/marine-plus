@@ -118,9 +118,9 @@ def load_postprocess_vocab(vocab_dir: Path, tasks: list[str]) -> dict[str, Any]:
                         for moras in feature.split(FEATURE_NODE_SPLIT_SYMBOL)
                     ]
 
-                    assert len(surfaces) == len(
-                        features
-                    ), f"Wrong length entry : ({surfaces} != {features})"
+                    assert len(surfaces) == len(features), (
+                        f"Wrong length entry : ({surfaces} != {features})"
+                    )
 
                     labels = [
                         (0 if node_index == 0 else len(features[node_index - 1]))
