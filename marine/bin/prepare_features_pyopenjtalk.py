@@ -7,7 +7,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from marine.data.jtalk_dict import download_and_apply_dictionaries
+from marine.data.dictionary_downloader import download_and_apply_dictionaries
 from marine.logger import getLogger
 from marine.utils.openjtalk_util import convert_open_jtalk_node_to_feature
 from marine.utils.util import load_json_corpus
