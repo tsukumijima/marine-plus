@@ -1,4 +1,4 @@
-# flake8: noqa: F401, F403
+# flake8: noqa: F403
 from .att_lstm_decoder import *
 from .base_model import *
 from .bilstm_encoder import *

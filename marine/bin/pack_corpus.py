@@ -1,5 +1,3 @@
-# flake8: noqa: B023
-
 import argparse
 import sys
 from concurrent.futures import ProcessPoolExecutor
