@@ -32,7 +32,7 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.21.0",
-    "torch>=1.7.0",
+    "torch>=2.0.0",
     "hydra-core>=1.1.0",
     "hydra_colorlog>=1.1.0",
     "tqdm",

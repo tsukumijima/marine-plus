@@ -1,7 +1,7 @@
 import importlib.resources as importlib_resources
 import json
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import pytest
@@ -20,7 +20,7 @@ from marine.data.feature.feature_table import (
     parse_accent_con_type,
 )
 from marine.models.util import init_model
-from marine.types import AccentRepresentMode, MarineFeature, MarineLabel, NJDFeature
+from marine.types import AccentRepresentMode, MarineFeature, MarineLabel
 from marine.utils.g2p_util.util import MORA_LIST_ADDITIONAL, MORA_LIST_MINIMUM
 from marine.utils.openjtalk_util import (
     convert_njd_feature_to_marine_feature,
@@ -35,6 +35,10 @@ from marine.utils.util import (
     get_accent_nucleus_in_high_low_accent_stauts_seq,
     normalize_punctuation_characters,
 )
+
+
+if TYPE_CHECKING:
+    from pyopenjtalk import NJDFeature
 
 
 BASE_DIR = Path(str(importlib_resources.files("marine")))
