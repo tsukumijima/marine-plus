@@ -56,7 +56,7 @@ dev = [
     "pytest-cov",
     # 前処理関連
     "click",
-    "httpx",
+    "httpx2",
     "fugashi-plus>=1.5.2.post1",
     "unidic>=1.1.0",
     "zipfile-inflate64>=0.1.0",

@@ -8,9 +8,9 @@ from marine.logger import getLogger
 
 
 try:
-    import httpx
+    import httpx2 as httpx
 except ImportError:
-    raise ImportError("httpx is required. Please install it with: pip install httpx")
+    raise ImportError("httpx2 is required. Please install it with: pip install httpx2")
 
 DICTIONARIES_DIR = Path(__file__).parent / "dictionaries"
 SHA_FILE = DICTIONARIES_DIR / "sha_info.json"
