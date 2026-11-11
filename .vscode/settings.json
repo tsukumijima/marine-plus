@@ -15,18 +15,4 @@
     "python.envFile": "",
     // Pylance の Type Checking を有効化
     "python.languageServer": "Pylance",
-    "python.analysis.typeCheckingMode": "strict",
-    // Pylance の Type Checking のうち、いくつかのエラー報告を抑制する
-    "python.analysis.diagnosticSeverityOverrides": {
-        "reportConstantRedefinition": "none",
-        "reportDeprecated": "warning",
-        "reportMissingTypeStubs": "none",
-        "reportPrivateImportUsage": "none",
-        "reportUnnecessaryComparison": "none",
-        "reportUnknownArgumentType": "none",
-        "reportUnknownMemberType": "none",
-        "reportUnknownVariableType": "none",
-        "reportUntypedFunctionDecorator": "none",
-        "reportUnusedFunction": "none",
-    },
 }

@@ -1,19 +1,18 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "marine-plus"
 dynamic = ["version"]
 description = "Marine: Multi-task learning based on Japanese accent estimation (Also supports Windows and Python 3.13)"
 readme = "README.md"
-requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-keywords = []
+requires-python = ">=3.10"
 authors = [
     { name = "Byeongseon Park", email = "6gsn.park@gmail.com" },
 ]
+maintainers = [
+    { name = "tsukumi", email = "tsukumijima@users.noreply.github.com" },
+]
+keywords = ["japanese", "pitch-accent", "accent-estimation", "openjtalk"]
 classifiers = [
     "Operating System :: POSIX",
     "Operating System :: Unix",
@@ -31,13 +30,13 @@ classifiers = [
     "Intended Audience :: Developers",
 ]
 dependencies = [
-    "numpy>=1.21.0",
-    "torch>=2.0.0",
     "hydra-core>=1.1.0",
     "hydra_colorlog>=1.1.0",
-    "tqdm",
     "joblib",
+    "numpy>=1.21.0",
     "pykakasi>=2.3.0",
+    "torch>=2.0.0",
+    "tqdm",
 ]
 
 [project.optional-dependencies]
@@ -49,59 +48,44 @@ pyopenjtalk = ["pyopenjtalk-plus"]
 ## Usage: uv sync --group dev
 dev = [
     # リンター / フォーマッター / 型チェッカー / テスト
-    "taskipy",
-    "ruff",
-    "pyright",
-    "pytest",
+    "pyright>=1.1.407",
+    "pytest>=9.1.1",
     "pytest-cov",
+    "ruff",
+    "taskipy>=1.14.1",
     # 前処理関連
     "click",
-    "httpx2",
     "fugashi-plus>=1.5.2.post1",
+    "httpx2",
     "unidic>=1.1.0",
     "zipfile-inflate64>=0.1.0",
     # 学習関連
-    "torchmetrics",
-    "scikit-learn",
     "docstr-coverage",
-    "tensorboard",
     "matplotlib",
     "pandas",
+    "scikit-learn",
+    "tensorboard",
+    "torchmetrics",
 ]
 ## ドキュメント生成用の依存関係
 ## Usage: uv sync --group docs
 docs = [
+    "ipython",
+    "Jinja2>=3.0.1",
+    "jupyter",
+    "nbsphinx>=0.8.6",
+    "pandoc",
     "sphinx",
     "sphinx-autobuild",
     "sphinx_rtd_theme",
-    "nbsphinx>=0.8.6",
-    "Jinja2>=3.0.1",
-    "pandoc",
-    "ipython",
-    "jupyter",
 ]
 
-[tool.setuptools]
-include-package-data = false
+[project.urls]
+Homepage = "https://github.com/tsukumijima/marine-plus"
+Source = "https://github.com/tsukumijima/marine-plus"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["marine*"]
-exclude = ["marine.bin.conf*"]
-namespaces = false
-
-[tool.setuptools.package-data]
-marine = [
-    "dict/*/*.tsv",
-]
-
-[tool.setuptools.dynamic]
-version = { attr = "marine.__version__" }
-
-# タスクランナーのタスク定義
-## Usage: uv run task <task-name>
 [tool.taskipy.tasks]
-## リント・フォーマット
+# リント・フォーマット
 lint = "ruff check --fix . ; pyright"
 format = "ruff format ."
 typecheck = "pyright"
@@ -120,6 +104,27 @@ pack-corpus = "python -m marine.bin.pack_corpus"
 train-model = "python -m marine.bin.train"
 test-model = "python -m marine.bin.test"
 package-model = "python -m marine.bin.package_model"
+
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["marine*"]
+exclude = ["marine.bin.conf*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+marine = [
+    "dict/*/*.tsv",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "marine.__version__" }
 
 [tool.ruff]
 # 1行の長さを最大88文字に設定
@@ -154,9 +159,7 @@ indent-style = "space"
 [tool.pyright]
 # 型チェック対象の Python バージョンを指定
 pythonVersion = "3.10"
-# TypeCheckingMode を strict に設定（VSCode の設定と同等）
 typeCheckingMode = "strict"
-# プロジェクトルートを指定
 pythonPlatform = "All"
 # インクルードするパッケージパス
 include = [
@@ -171,7 +174,7 @@ exclude = [
     "logs/",
     "recipe/",
 ]
-# VSCode の settings.json の diagnosticSeverityOverrides に対応する設定
+# Pyright/Pylance の型チェックのうち、いくつかのエラー報告を抑制する
 reportConstantRedefinition = "none"
 reportDeprecated = "warning"
 reportMissingTypeStubs = "none"
