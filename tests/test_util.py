@@ -476,7 +476,7 @@ def test_convert_njd_feature_to_marine_feature():
         ),
     ]:
         results = convert_njd_feature_to_marine_feature(
-            cast(list[NJDFeature], features)
+            cast("list[NJDFeature]", features)
         )
         assert results == expect
 
