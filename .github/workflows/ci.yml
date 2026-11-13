@@ -87,7 +87,7 @@ jobs:
         uv pip check
     - name: Lint with Ruff
       run: |
-        uv run ruff check .
+        uv run --no-sync ruff check .
     - name: Test with pytest
       run: |
-        uv run python -W error::DeprecationWarning -m pytest
+        uv run --no-sync python -W error::DeprecationWarning -m pytest
