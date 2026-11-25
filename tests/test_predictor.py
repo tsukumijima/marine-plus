@@ -191,3 +191,35 @@ def test_pad_annotate_label_accepts_tensor_labels(predictor: Predictor) -> None:
         result["accent_phrase_boundary"],
         torch.tensor([[0, 1, 0]], device=result["accent_phrase_boundary"].device),
     )
+
+
+def test_predict_applies_postprocess_vocab(predictor: Predictor) -> None:
+    """後処理辞書に載っている語 (音声合成) を含む入力でも推論でき、辞書の値が反映されることを確認する。"""
+
+    nodes: list[MarineFeature] = [
+        {
+            "surface": "音声",
+            "pron": "オンセー",
+            "pos": "名詞:一般:*:*",
+            "c_type": "*",
+            "c_form": "*",
+            "accent_type": 5,
+            "accent_con_type": "C1",
+            "chain_flag": -1,
+        },
+        {
+            "surface": "合成",
+            "pron": "ゴーセー",
+            "pos": "名詞:サ変接続:*:*",
+            "c_type": "*",
+            "c_form": "*",
+            "accent_type": 0,
+            "accent_con_type": "C2",
+            "chain_flag": 1,
+        },
+    ]
+
+    result = predictor.predict([nodes])
+
+    # 辞書 (marine/dict/accent_phrase_boundary/artifact.tsv) では「音声合成」は 1 つのアクセント句
+    assert result["accent_phrase_boundary"] == [[0, 0, 0, 0, 0, 0, 0, 0]]
