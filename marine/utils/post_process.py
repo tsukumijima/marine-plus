@@ -3,8 +3,6 @@ from csv import reader
 from pathlib import Path
 from typing import Any, Literal
 
-import numpy as np
-
 from marine.types import AccentRepresentMode, MarineFeature
 from marine.utils.g2p_util import pron2mora
 from marine.utils.g2p_util.g2p import ACCENT_REPRESENT_FUNC_TABLE
@@ -172,7 +170,9 @@ def apply_postprocess_dict(
                 if node_mask:
                     # get mora-based boundary's position
                     boundary_indexs = (
-                        [0] + list(np.where(boundary > 0)[0]) + [len(moras)]  # type: ignore
+                        [0]
+                        + [index for index, value in enumerate(boundary) if value > 0]
+                        + [len(moras)]
                     )
                     node_start, node_end = node_mask
 
